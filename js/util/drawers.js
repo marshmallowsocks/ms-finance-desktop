@@ -136,6 +136,11 @@ function drawers() {
   this.drawTransactions = Store => {
     const transactionData = [];
     let markup = '<table class="table table-striped">';
+
+    if(Store.transactions.length === 0) {
+      return '<div class="alert alert-info"><span data-feather="info"></span> Link an account to get started!</div>'
+    }
+
     markup += `
       <thead>
         <tr>
