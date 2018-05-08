@@ -1,0 +1,31 @@
+{
+  "name": "marshmallowsocks-finance",
+  "version": "1.0.0",
+  "description": "A real time finance application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": "",
+  "keywords": [
+    "Electron",
+    "quick",
+    "start",
+    "finance",
+    "plaid"
+  ],
+  "author": "marshmallowsocks",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^1.8.4",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.11.0"
+  },
+  "dependencies": {
+    "dexie": "^2.0.3",
+    "moment": "2.19.x",
+    "npm": "^6.0.0",
+    "plaid": "2.3.x"
+  }
+}

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Marshmallowsocks Finance</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css">
+  <link href="./css/style.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">MS Finance</a>
+    <div class="form-control form-control-dark w-100">Net balance: <span id="netBalance" class="float-right"></span></span></div>
+    <ul class="navbar-nav px-3">
+      <li class="nav-item text-nowrap">
+        <button class="btn btn-outline-success" id="link-btn" href="#"><span data-feather="plus"></span> Add Bank</button>
+        <button class="btn btn-outline-success" data-toggle="modal" data-target="#addCryptoModal"><span data-feather="plus"></span> Add Crypto</button>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="container-fluid">
+    <div class="row">
+      <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+        <div class="sidebar-sticky">
+          <ul class="nav flex-column">
+            <li class="nav-item">
+              <a class="nav-link active" href="#" data-goto="overview">
+                <span data-feather="home"></span>
+                Overview <span class="sr-only">(current)</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" data-goto="accounts">
+                <span data-feather="dollar-sign"></span>
+                Accounts
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" data-goto="credit">
+                <span data-feather="credit-card"></span>
+                Credit Cards
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" data-goto="investments">
+                <span data-feather="trending-up"></span>
+                Investments
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" data-goto="banks">
+                <span data-feather="bar-chart-2"></span>
+                Banks
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" data-goto="crypto">
+                <span data-feather="trending-down"></span>
+                Cryptocurrency
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" data-goto="transactions">
+                <span data-feather="activity"></span>
+                Transactions
+              </a>
+            </li>
+          </ul>
+
+          <!--h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>Saved reports</span>
+            <a class="d-flex align-items-center text-muted" href="#">
+              <span data-feather="plus-circle"></span>
+            </a>
+          </h6>
+          <ul-- class="nav flex-column mb-2">
+            <li class="nav-item">
+              <a class="nav-link" href="#">
+                <span data-feather="file-text"></span>
+                Current month
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">
+                <span data-feather="file-text"></span>
+                Last quarter
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">
+                <span data-feather="file-text"></span>
+                Social engagement
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">
+                <span data-feather="file-text"></span>
+                Year-end sale
+              </a>
+            </li>
+          </ul-->
+        </div>
+      </nav>
+
+      <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <h1 class="h2" id="title">Overview</h1>
+          <div class="mb-2 mb-md-0">
+            <span id="contextBalance"></span>
+          </div>
+        </div>
+      </main>
+
+      <div id="app" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+        <div id="overview"></div>
+        <div id="accounts" class="d-none"></div>
+        <div id="credit" class="d-none"></div>
+        <div id="investments" class="d-none"></div>
+        <div id="banks" class="d-none"></div>
+        <div id="crypto" class="d-none"></div>
+        <div id="transactions" class="d-none">Herro transactions</div>
+        <div id="loading" class="d-none row h-100 justify-content-center align-items-center">
+          <span class="fa fa-refresh fa-spin fa-5x"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="addCryptoModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add holding</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="form-group">
+              <label for="addCryptoField">Crypto: </label>
+              <input type="text" class="form-control typeahead" id="addCryptoField" placeholder="Enter symbol">
+            </div>
+            <div class="form-group">
+              <label for="addHoldingField">Holdings: </label>
+              <input type="number" class="form-control" id="addHoldingField" placeholder="Enter holdings">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" id="cryptoSubmit" class="btn btn-success" data-dismiss="modal">Add holding</button>          
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+  <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+  <script src=" https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
+  <script src="js/util/typeahead.js"></script>
+
+  <!-- Icons -->
+  <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+  <script>
+    require('./renderer.js')
+  </script>
+  <script>
+    feather.replace()
+  </script>
+  <script>if (window.module) module = window.module;</script>
+</body>
+</html>
