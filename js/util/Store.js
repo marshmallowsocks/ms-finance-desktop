@@ -33,7 +33,7 @@ let Store = function() {
       this.accounts[type] = [...this.accounts[type], ...account[type]];
       this.allAccounts = [...this.allAccounts, ...account[type]];
     });
-    this.calculateBalance(account);
+    this.recalculateBalance(account);
   }
 
   this.calculateBalance = (accounts) => {
