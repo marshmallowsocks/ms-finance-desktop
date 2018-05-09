@@ -1,4 +1,5 @@
 const Dexie = require('dexie');
+const IDBExportImport = require('indexeddb-export-import')
 
 const db = new Dexie('ms-finance-desktop');
 
@@ -15,12 +16,37 @@ const dbApi = {
       crypto: '++id, crypto_id, name, symbol, holdings',
     });
   },
+  exportDatabase: async () => {
+    return new Promise((resolve, reject) => {
+      db.open().then(() => {
+        const idbDb = db.backendDB(); // get native IDBDatabase object from Dexie wrapper
+  
+        // export to JSON, clear database, and import from JSON
+        IDBExportImport.exportToJsonString(idbDb, (err, jsonString) => {
+          if (err) {
+            reject(Error({
+              error: true,
+              errorMessage: 'Could not export database'
+            }));
+          }
+          else {
+            resolve(jsonString);
+          }
+        });
+      }).catch((e) => {
+        reject(Error({
+          error: true,
+          errorMessage: 'Could not export database.'
+        }));
+      });
+    });
+  },
   getCryptoHoldings: async () => db.crypto.toArray(),
   saveCryptoHolding: async ({
     crypto_id, name, symbol, holdings, // eslint-disable-line camelcase
   }) => {
     const exists = await db.crypto.where('symbol').equals(symbol).first();
-    if(exists) {
+    if (exists) {
       await db.crypto.put({
         id: exists.id,
         crypto_id,
@@ -28,10 +54,10 @@ const dbApi = {
         symbol,
         holdings: parseInt(holdings, 10) + parseInt(exists.holdings, 10),
       });
-      
+
       return {
         exists: true,
-        error: false
+        error: false,
       };
     }
     else {

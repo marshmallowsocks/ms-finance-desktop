@@ -35,6 +35,7 @@ api.init();
 
 const pageInit = () => {
   showLoader();
+  $('#messageModal').modal({ show: false });
   const initialFetchData = () => {
     return new Promise((resolve, reject) => {
       api.getAllInstitutionData()
@@ -139,9 +140,20 @@ $('#link-btn').on('click', e => {
   handler.open();
 });
 
+$('#databaseExport').on('click', e => {
+  api.exportDatabase().then(res => {
+    if(!res.error) {
+      $('#modalMessage').html('Successfully exported database to <code>exportedDB.json</code>');
+      $('#messageModal').modal('show');
+    }
+  });
+});
 $('#cryptoSubmit').on('click', e => {
   const symbol = $('#addCryptoField').val();
   const holdings = $('#addHoldingField').val();
+  if(isNaN(parseInt(holdings, 10))) {
+    holdings = 0;
+  }
   const crypto = Store.getCryptoInformation(symbol);
   api.saveCryptoHolding({
     crypto_id: crypto.id,
@@ -289,11 +301,20 @@ const setupCryptoSuggestions = (crypto) => {
   $('#addCryptoField').typeahead({
     hint: true,
     highlight: true,
-    minLength: 1
+    minLength: 1,
   },
   {
     name: 'crypto',
     source: suggestions
+  });
+
+  $('#addCryptoField').bind('typeahead:selected', (obj, data, name) => {
+    if(Store.getCryptoInformation(data)) {
+      $('#cryptoSubmit').prop('disabled', false);
+    }
+    else {
+      $('#cryptoSubmit').prop('disabled', true);
+    }
   });
 }
 

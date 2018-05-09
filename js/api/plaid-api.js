@@ -3,6 +3,7 @@ const moment = require('moment');
 const constants = require('../util/constants');
 const db = require('../util/db');
 const helpers = require('../util/helpers');
+const fs = require('fs');
 
 let client;
 
@@ -15,6 +16,17 @@ const api = {
       plaid.environments[constants.plaid.PLAID_ENV],
     );
     db.init();
+  },
+  exportDatabase: () => {
+    return new Promise((resolve, reject) => {
+      db.exportDatabase().then(result => {
+        fs.writeFile('exportedDB.json', result, err => {
+          resolve({
+            error: false
+          });
+        });
+      });
+    })
   },
   exchangePublicToken: publicToken => new Promise((resolve, reject) => {
     client.exchangePublicToken(publicToken, (error, tokenResponse) => {
