@@ -42,10 +42,29 @@ const pageInit = () => {
       api.getAllInstitutionData()
         .then(institutions => {
           if(!institutions.length) {
-            resolve({
-              error: false,
-              accountDataExists: false
-            });
+            api.fetchCrypto()
+                 .then(crypto => {
+                    setupCryptoSuggestions(crypto);
+                    api.getCryptoHoldings().then(cryptoAccounts => {
+                      if(cryptoAccounts.length === 0) {
+                        resolve({
+                          error: false,
+                          accountDataExists: false
+                        });
+                      }
+                      const cryptoAccountData = cryptoAccounts.map(cryptoAccount => {
+                        const data = crypto[cryptoAccount.crypto_id];
+                        data.holdings = cryptoAccount.holdings;
+                        return createAccountObject(data);
+                      });
+
+                      Store.addAccountCollection(cryptoAccountData);
+                      resolve({
+                        error: false,
+                        accountDataExists: true
+                      });
+                    });
+                  });
           }
           const accountPromises = [];
           const transactionPromises = [];
