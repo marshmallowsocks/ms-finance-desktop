@@ -229,8 +229,12 @@ $('#createGroupSubmit').on('click', e => {
     return this.value;
   }).get();
   const name = $('#createGroupField').val();
+  if(name === '' || name === null || name === undefined) {
+    name = 'Default group';
+  }
   api.createGroup(name, accounts).then(res => {
     console.log('Created group');
+    getCurrentWindow().reload();
   });
 });
 
@@ -295,11 +299,13 @@ const createAccountObject = (crypto, holdings) => {
   storeObject.crypto.push({
     account_id: '-',
     balances: {
-      available: (crypto.holdings || holdings) * crypto.quotes.USD.price
+      available: (crypto.holdings || holdings) * crypto.quotes.USD.price,
+      current: null,
+      limit: null,
     },
     institutionName: crypto.symbol,
     mask: `Holdings: ${crypto.holdings || holdings} ${crypto.symbol}`, // use the mask field to show holdings in card
-    official_name: `Price as of ${moment.unix(crypto.last_updated).format()} : $${crypto.quotes.USD.price}`, // use the official_name field to show current price.
+    official_name: `Price as of ${moment.unix(crypto.last_updated).format('MMM Do YYYY HH:mm:ss')} : <span class="font-weight-bold">$${crypto.quotes.USD.price}</span>`, // use the official_name field to show current price.
     name: crypto.name,
     subtype: 'crypto',
     type: 'crypto'
@@ -307,6 +313,7 @@ const createAccountObject = (crypto, holdings) => {
 
   return storeObject;
 }
+
 const showLoader = () => {
   $('#app > div').addClass('d-none');
   $('#loading').removeClass('d-none');
@@ -325,13 +332,26 @@ const drawAll = () => {
   $('#banks').html(drawer.drawBankCards(Store));
   $('#crypto').html(drawer.drawCryptoCards(Store));
   $('#groups').html(drawer.drawGroups(Store));
+  attachGroupHandlers();
   drawNetBalance(Store.netBalance);
   drawContextBalance(Store.netBalance);
   hideLoader();
 }
 
+const attachGroupHandlers = () => {
+  Store.groups.forEach(group => {
+    $(`#group${group.id}`).on('click', e => {
+      api.deleteGroup(group.id).then(res => {
+        getCurrentWindow().reload();
+      });
+    });
+  });
+}
 const drawTransactions = () => {
   $('#transactions').html(drawer.drawTransactions(Store));
+  $('#transactionsTable').DataTable();
+  $('.dataTables_filter').addClass('float-right');
+  $('.dataTables_paginate').addClass('float-right');
   feather.replace();
 }
 

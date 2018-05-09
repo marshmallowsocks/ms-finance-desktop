@@ -64,6 +64,17 @@ const api = {
       });
     });
   },
+  deleteGroup: groupId => {
+    return new Promise((resolve, reject) => {
+      db.deleteGroup(groupId).then(res => {
+        resolve({
+          error: false
+        });
+      }).catch(err => {
+        reject(Error(err));
+      });
+    });
+  },
   exchangePublicToken: publicToken => new Promise((resolve, reject) => {
     client.exchangePublicToken(publicToken, (error, tokenResponse) => {
       let message;

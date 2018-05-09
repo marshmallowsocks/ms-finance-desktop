@@ -68,7 +68,8 @@ const dbApi = {
     });
   },
   addGroup: async ({name, accounts}) => db.groups.add({name, accounts}),
-  getGroups: async () => db.groups.toArray(), 
+  getGroups: async () => db.groups.toArray(),
+  deleteGroup: async groupId => db.groups.where('id').equals(groupId).delete(),
   getCryptoHoldings: async () => db.crypto.toArray(),
   saveCryptoHolding: async ({
     crypto_id, name, symbol, holdings, // eslint-disable-line camelcase
@@ -102,6 +103,7 @@ const dbApi = {
       };
     }
   },
+  deleteCryptoHolding: async cryptoId => db.crypto.where('crypto_id').equals(cryptoId).delete(),
   saveAccessToken: async (access_token, item_token) => // eslint-disable-line camelcase
     db.access_tokens.add({
       access_token,

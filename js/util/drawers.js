@@ -137,12 +137,14 @@ function drawers() {
     let markup = '';
     let groupTotal = 0;
     let groupTotalMarkup;
-
+    if(Store.groups.length === 0) {
+      return '<div class="alert alert-info">Create a group to get started!</div>';
+    }
     Store.groups.forEach(group => {
       markup += `
         <div class="card">
         <div class="card-header">
-          ${group.name}
+          <h4>${group.name} <button class="btn btn-danger float-right" id="group${group.id}">Delete group</button></h4>
         </div>
         <ul class="list-group list-group-flush">`;
       
@@ -150,17 +152,22 @@ function drawers() {
         let balance = Store.cleanBalance(account.balances);
         let contextClass;
 
-        if(account.type !== 'credit') {
+        if(balance === -Infinity) {
+          contextClass = 'badge-danger';
+          balance = '<span class="alert-octagon"></span>';
+        }
+        else if(account.type !== 'credit') {
           groupTotal += balance;
+          balance = `$${balance}`;
           contextClass = 'badge-success';
         }
         else {
           groupTotal -= balance;
-          balance = `(${balance})`;
+          balance = `$(${balance})`;
           contextClass = 'badge-danger';
         }
         
-        markup += `<li class="list-group-item"><h4>${account.name} <span class="badge ${contextClass} float-right">$${balance}</span></h4></li>`
+        markup += `<li class="list-group-item"><h5>${account.name} <span class="badge ${contextClass} float-right">${balance}</span></h5></li>`
       });
 
       groupTotalMarkup = this.drawNetBalance(groupTotal);
@@ -176,7 +183,7 @@ function drawers() {
 
   this.drawTransactions = Store => {
     const transactionData = [];
-    let markup = '<table class="table table-striped">';
+    let markup = '<table class="table table-striped" style="width:100%" id="transactionsTable">';
 
     if(Store.transactions.length === 0) {
       return '<div class="alert alert-info"><span data-feather="info"></span> Link an account to get started!</div>'
@@ -201,7 +208,7 @@ function drawers() {
           <td>${transaction.name}</td>
           <td>$${transaction.amount}</td>
           <td>${transaction.date}</td>
-          <td>${!transaction.pending ? '<span data-feather="check-square"></span>' : '<span data-feather="square"></span>'}</td>
+          <td>${!transaction.pending ? '<i class="fa fa-check-square"></i>' : '<i class="fa fa-square"></i>'}</td>
         </tr>`;
       });
     });
@@ -213,12 +220,30 @@ function drawers() {
   const drawCard = ({title, subTitle, balance, positive, officialName, credit}) => {
     const signType = positive ? 'badge-success' : 'badge-danger';
     let additionalInfo = '';
-    balance = helpers.round(balance, 2);
-    balance = positive ? '$' + balance : '$(' + balance + ')';
-    
+    if(balance === -Infinity) {
+      // could not fetch balance correctly.
+      balance = '<span data-feather="alert-octagon"></span>';
+    }
+    else {
+      balance = helpers.round(balance, 2);
+      balance = positive ? '$' + balance : '$(' + balance + ')';
+    }
     if(credit) {
-      additionalInfo += `Credit limit: ${credit.limit !== 0 ? '$' + Math.ceil(credit.limit) : 'The institution did not provide this information.'}<br>`;
-      additionalInfo += `Credit available: ${credit.available ? '$' + credit.available : 'The institution did not provide this information.'}<br>`;
+      let creditUsed = 'Could not calculate usage.';
+      if(Number.isFinite(credit.limit) && Number.isFinite(credit.available) && credit.limit !== 0) {
+        let creditAvailable = (credit.available/Math.ceil(credit.limit)) * 100;
+        creditUsed = ((Math.ceil(credit.limit) - credit.available)/Math.ceil(credit.limit)) * 100;
+
+        additionalInfo += `<div class="progress" style="height:25px;">
+          <div class="progress-bar bg-success" role="progressbar" style="width: ${creditAvailable}%">$${credit.available}</div>
+          <div class="progress-bar bg-danger" role="progressbar" style="width: ${creditUsed}%">$${helpers.round(Math.ceil(credit.limit) - credit.available, 2)}</div>
+        </div>`;
+      }
+      else {
+        additionalInfo += `Credit limit: ${Number.isFinite(credit.limit) ? '$' + Math.ceil(credit.limit) : 'The institution did not provide this information.'}<br>`;
+        additionalInfo += `Credit available: ${Number.isFinite(credit.available) ? '$' + credit.available : 'The institution did not provide this information.'}<br>`;
+        additionalInfo += `Credit used: ${creditUsed}`;
+      }
     }
     
     return `

@@ -1,12 +1,10 @@
-const db = require('../util/db');
-
 let Store = function() {
   this.cleanBalance = (balances) => {
-    if(balances.limit) {
+    if(balances.limit !== null) {
       // is a credit card / line of credit
-      return balances.current ? balances.current : (balances.available ? balances.limit - balances.available : -Infinity)
+      return balances.current !== null ? balances.current : (balances.available !== null ? balances.limit - balances.available : -Infinity)
     }
-    return balances.available ? balances.available : (balances.current ? balances.current : -Infinity);
+    return balances.available !== null ? balances.available : (balances.current !== null ? balances.current : -Infinity);
   }
 
   this.addAccountCollection = (accounts) => {
@@ -23,6 +21,7 @@ let Store = function() {
 
   this.addGroup = (group) => {
     const groupData = {
+      id: group.id,
       name: group.name,
       accounts: []
     };
@@ -34,6 +33,19 @@ let Store = function() {
     });
     
     this.groups.push(groupData);
+  }
+
+  this.deleteGroup = (groupId) => {
+    let index;
+
+    for(let i = 0; i < this.groups.length; i++) {
+      if(this.groups[i].id === groupId) {
+        index = i;
+        break;
+      }
+    }
+
+    this.groups = this.groups.splice(index, 1);
   }
 
   this.addAllCrypto = (crypto) => {
@@ -63,6 +75,9 @@ let Store = function() {
     Object.keys(accounts).forEach(type => {
       accounts[type].forEach(account => {
         const balance = this.cleanBalance(account.balances);
+        if(balance === -Infinity) {
+          return;
+        }
         switch(type) {
           case 'brokerage':
             this.investmentBalance += balance;
