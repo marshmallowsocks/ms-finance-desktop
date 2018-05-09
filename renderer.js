@@ -19,7 +19,8 @@ const pages = {
   investments: 'Investments',
   banks: 'Banks',
   crypto: 'Cryptocurrency',
-  transactions: 'Transactions'
+  transactions: 'Transactions',
+  groups: 'Groups',
 };
 
 const titles = {
@@ -29,7 +30,8 @@ const titles = {
   Investments: 'investments',
   Banks: 'banks',
   Cryptocurrency: 'crypto',
-  Transactions: 'transactions'
+  Transactions: 'transactions',
+  Groups: 'groups'
 };
 
 api.init();
@@ -57,7 +59,6 @@ const pageInit = () => {
                         data.holdings = cryptoAccount.holdings;
                         return createAccountObject(data);
                       });
-
                       Store.addAccountCollection(cryptoAccountData);
                       resolve({
                         error: false,
@@ -83,10 +84,13 @@ const pageInit = () => {
                         data.holdings = cryptoAccount.holdings;
                         return createAccountObject(data);
                       });
-                      Store.addAccountCollection([...result, ...cryptoAccountData]);
-                      resolve({
-                        error: false,
-                        accountDataExists: true
+                      api.getGroups().then(groups => {
+                        Store.addAccountCollection([...result, ...cryptoAccountData]);
+                        Store.addGroupCollection(groups);
+                        resolve({
+                          error: false,
+                          accountDataExists: true
+                        });
                       });
                     });
                  })
@@ -201,6 +205,35 @@ $('#importDatabase').on('change', e => {
   }
 });
 
+$('#createGroupButton').on('click', e => {
+  $('#createGroupModal').modal({ show: false });
+  let markup = '';
+  Store.allAccounts.forEach(account => {
+    markup += `<tr>
+                <td>${account.name}</td>
+                <td>${account.institutionName}</td>
+                <td>
+                <div class="form-check">
+                  <input class="form-check-input" name="createGroupCheckbox" type="checkbox" value="${account.account_id}" id="${account.account_id}">
+                </div>
+                </td>
+               </tr>`
+  });
+  $('#createGroupTableBody').html(markup);
+  $('#createGroupModal').modal('show');
+
+});
+
+$('#createGroupSubmit').on('click', e => {
+  const accounts = $('input:checkbox:checked').map(function() {
+    return this.value;
+  }).get();
+  const name = $('#createGroupField').val();
+  api.createGroup(name, accounts).then(res => {
+    console.log('Created group');
+  });
+});
+
 $('#cryptoSubmit').on('click', e => {
   const symbol = $('#addCryptoField').val();
   const holdings = $('#addHoldingField').val();
@@ -291,6 +324,7 @@ const drawAll = () => {
   $('#investments').html(drawer.drawInvestmentCards(Store));
   $('#banks').html(drawer.drawBankCards(Store));
   $('#crypto').html(drawer.drawCryptoCards(Store));
+  $('#groups').html(drawer.drawGroups(Store));
   drawNetBalance(Store.netBalance);
   drawContextBalance(Store.netBalance);
   hideLoader();

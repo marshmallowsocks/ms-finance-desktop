@@ -43,6 +43,27 @@ const api = {
       });
     });
   },
+  createGroup: (name, accounts) => {
+    return new Promise((resolve, reject) => {
+      db.addGroup({name, accounts}).then(res => {
+        resolve({
+          error: false,
+          message: 'Group created!',
+        });
+      }).catch(err => {
+        reject(Error(err));
+      });
+    });
+  },
+  getGroups: () => {
+    return new Promise((resolve, reject) => {
+      db.getGroups().then(res => {
+        resolve(res);
+      }).catch(err => {
+        reject(Error(err));
+      });
+    });
+  },
   exchangePublicToken: publicToken => new Promise((resolve, reject) => {
     client.exchangePublicToken(publicToken, (error, tokenResponse) => {
       let message;

@@ -15,6 +15,27 @@ let Store = function() {
     });
   }
 
+  this.addGroupCollection = (groups) => {
+    groups.forEach(group => {
+      this.addGroup(group);
+    });
+  }
+
+  this.addGroup = (group) => {
+    const groupData = {
+      name: group.name,
+      accounts: []
+    };
+    
+    group.accounts.forEach(accountId => {
+      groupData.accounts.push(
+        this.allAccounts.filter(account => account.account_id === accountId)[0]
+      );
+    });
+    
+    this.groups.push(groupData);
+  }
+
   this.addAllCrypto = (crypto) => {
     this.allCrypto = crypto;
   }
@@ -74,6 +95,7 @@ let Store = function() {
   this.allCrypto = {};
   this.allAccounts = [];
   this.transactions = [];
+  this.groups = [];
   this.netBalance = 0;
   this.cashBalance = 0;
   this.creditDebt = 0;

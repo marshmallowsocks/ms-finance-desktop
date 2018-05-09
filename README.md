@@ -4,7 +4,7 @@
 
 ms-finance-desktop needs just these files:
 
-- `constants.js` - Points to the app's main constants and dependencies. Add your Plaid credentials here.
+- `js/util/constants.js` - Points to the app's main constants and dependencies. Add your Plaid credentials here.
 
 ## To Use
 
@@ -21,7 +21,7 @@ npm install
 npm start
 ```
 
-You'll also need [Plaid](https://dashboard.plaid.com/signup). Get your API keys and use them in `constants.js`.
+You'll also need [Plaid](https://dashboard.plaid.com/signup). Get your API keys and use them in `js/util/constants.js`.
 
 Note: If you're using Linux Bash for Windows, [see this guide](https://www.howtogeek.com/261575/how-to-run-graphical-linux-desktop-applications-from-windows-10s-bash-shell/) or use `node` from the command prompt.
 

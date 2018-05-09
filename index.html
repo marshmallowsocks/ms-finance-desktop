@@ -68,7 +68,16 @@
                 Transactions
               </a>
             </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" data-goto="groups">
+                <span data-feather="grid"></span>
+                Groups
+              </a>
+            </li>
           </ul>
+          <div class="btn-group d-flex justify-content-between align-items-end px-3 mt-4 mb-1">
+            <button id="createGroupButton" class="btn btn-primary">Create Group</button>
+          </div>
           <div class="btn-group d-flex justify-content-between align-items-end px-3 mt-4 mb-1">
             <button class="btn btn-secondary" id="databaseExport">Export database</button>
           </div>
@@ -100,6 +109,7 @@
         <div id="banks" class="d-none"></div>
         <div id="crypto" class="d-none"></div>
         <div id="transactions" class="d-none"></div>
+        <div id="groups"></div>
         <div id="loading" class="d-none row h-100 justify-content-center align-items-center">
           <span class="fa fa-refresh fa-spin fa-5x"></span>
         </div>
@@ -119,11 +129,11 @@
         <div class="modal-body">
           <form>
             <div class="form-group">
-              <label for="addCryptoField">Crypto: </label>
+              <label for="addCryptoField">Crypto </label>
               <input type="text" class="form-control typeahead" id="addCryptoField" placeholder="Enter symbol">
             </div>
             <div class="form-group">
-              <label for="addHoldingField">Holdings: </label>
+              <label for="addHoldingField">Holdings </label>
               <input type="number" class="form-control" id="addHoldingField" placeholder="Enter holdings">
             </div>
           </form>
@@ -131,6 +141,34 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
           <button type="button" id="cryptoSubmit" class="btn btn-success" data-dismiss="modal" disabled="disabled">Add holding</button>          
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="createGroupModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Create group</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="form-group">
+              <label for="createGroupField">Name </label>
+              <input type="text" class="form-control" id="createGroupField" placeholder="Group name">
+            </div>
+          </form>
+          <table id="createGroupTable" class="table table-striped">
+            <tbody id="createGroupTableBody"></tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" id="createGroupSubmit" class="btn btn-success" data-dismiss="modal">Create group</button>          
         </div>
       </div>
     </div>

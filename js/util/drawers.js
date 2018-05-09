@@ -133,6 +133,47 @@ function drawers() {
     return markup;
   }
 
+  this.drawGroups = Store => {
+    let markup = '';
+    let groupTotal = 0;
+    let groupTotalMarkup;
+
+    Store.groups.forEach(group => {
+      markup += `
+        <div class="card">
+        <div class="card-header">
+          ${group.name}
+        </div>
+        <ul class="list-group list-group-flush">`;
+      
+      group.accounts.forEach(account => {
+        let balance = Store.cleanBalance(account.balances);
+        let contextClass;
+
+        if(account.type !== 'credit') {
+          groupTotal += balance;
+          contextClass = 'badge-success';
+        }
+        else {
+          groupTotal -= balance;
+          balance = `(${balance})`;
+          contextClass = 'badge-danger';
+        }
+        
+        markup += `<li class="list-group-item"><h4>${account.name} <span class="badge ${contextClass} float-right">$${balance}</span></h4></li>`
+      });
+
+      groupTotalMarkup = this.drawNetBalance(groupTotal);
+
+      markup += `</ul>
+        <div class="card-footer">
+          Group total: <span class="${groupTotalMarkup.classStyle} float-right">${groupTotalMarkup.balance}</span>
+        </div></div>`;
+    });
+
+    return markup;
+  };
+
   this.drawTransactions = Store => {
     const transactionData = [];
     let markup = '<table class="table table-striped">';

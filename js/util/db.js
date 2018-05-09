@@ -10,6 +10,12 @@ const dbApi = {
       institutions: '++id, name, institution_id, item_token, products',
       crypto: '++id, crypto_id, name, symbol, holdings',
     });
+    db.version(2).stores({
+      access_tokens: '++id, access_token, item_token',
+      institutions: '++id, name, institution_id, item_token, products',
+      crypto: '++id, crypto_id, name, symbol, holdings',
+      groups: '++id, name, accounts',
+    });
   },
   exportDatabase: async () => {
     return new Promise((resolve, reject) => {
@@ -61,6 +67,8 @@ const dbApi = {
       });
     });
   },
+  addGroup: async ({name, accounts}) => db.groups.add({name, accounts}),
+  getGroups: async () => db.groups.toArray(), 
   getCryptoHoldings: async () => db.crypto.toArray(),
   saveCryptoHolding: async ({
     crypto_id, name, symbol, holdings, // eslint-disable-line camelcase
