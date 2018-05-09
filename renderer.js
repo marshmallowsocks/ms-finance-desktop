@@ -3,6 +3,7 @@
 // All of the Node.js APIs are available in this process.
 
 const moment = require('moment');
+const { getCurrentWindow, globalShortcut } = require('electron').remote;
 const constants = require('./js/util/constants');
 const api = require('./js/api/plaid-api');
 const StoreCreator = require('./js/util/Store');
@@ -148,6 +149,39 @@ $('#databaseExport').on('click', e => {
     }
   });
 });
+
+$('#importDatabase').on('change', e => {
+  if(e.target.files.length === 0) {
+    $('#modalMessage').html('No file selected.');
+    $('#messageModal').modal('show');
+  }
+  else {
+    const reader = new FileReader();
+    reader.readAsText(e.target.files[0]);
+    reader.onload = event => {
+      const jsonString = event.target.result;
+      api.importDatabase(jsonString).then(res => {
+        if(!res.error) {
+          $('#modalMessage').html('Successfully imported database!<br>Page will reload in 5 seconds.');
+          $('#messageModal').modal('show');
+          setTimeout(() => {
+            getCurrentWindow().reload();            
+          }, 5000);
+        }
+        else {
+          $('#modalMessage').html('Could not import database.')
+          $('#messageModal').modal('show');
+        }
+      });
+    }
+    reader.onerror = event => {
+      $('#modalMessage').html('Could not read file.');
+      $('#messageModal').modal('show');
+    }
+    
+  }
+});
+
 $('#cryptoSubmit').on('click', e => {
   const symbol = $('#addCryptoField').val();
   const holdings = $('#addHoldingField').val();

@@ -10,18 +10,12 @@ const dbApi = {
       institutions: '++id, name, institution_id, item_token, products',
       crypto: '++id, crypto_id, name, symbol, holdings',
     });
-    db.version(11).stores({
-      access_tokens: '++id, access_token, item_token',
-      institutions: '++id, name, institution_id, item_token, products',
-      crypto: '++id, crypto_id, name, symbol, holdings',
-    });
   },
   exportDatabase: async () => {
     return new Promise((resolve, reject) => {
       db.open().then(() => {
         const idbDb = db.backendDB(); // get native IDBDatabase object from Dexie wrapper
   
-        // export to JSON, clear database, and import from JSON
         IDBExportImport.exportToJsonString(idbDb, (err, jsonString) => {
           if (err) {
             reject(Error({
@@ -37,6 +31,32 @@ const dbApi = {
         reject(Error({
           error: true,
           errorMessage: 'Could not export database.'
+        }));
+      });
+    });
+  },
+  importDatabase: async (jsonString) => {
+    return new Promise((resolve, reject) => {
+      db.open().then(() => {
+        const idbDb = db.backendDB(); // get native IDBDatabase object from Dexie wrapper
+        
+        IDBExportImport.importFromJsonString(idbDb, jsonString, (err, jsonString) => {
+          if (err) {
+            reject(Error({
+              error: true,
+              errorMessage: 'Could not import database'
+            }));
+          }
+          else {
+            resolve({
+              error: false
+            });
+          }
+        });
+      }).catch((e) => {
+        reject(Error({
+          error: true,
+          errorMessage: 'Could not import database.'
         }));
       });
     });

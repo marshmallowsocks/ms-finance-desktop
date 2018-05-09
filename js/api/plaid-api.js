@@ -26,7 +26,22 @@ const api = {
           });
         });
       });
-    })
+    });
+  },
+  importDatabase: (jsonString) => {
+    return new Promise((resolve, reject) => {
+      db.importDatabase(jsonString).then(result => {
+        if(result.error) {
+          reject({
+            error: true
+          });
+        }
+
+        resolve({
+          error: false
+        });
+      });
+    });
   },
   exchangePublicToken: publicToken => new Promise((resolve, reject) => {
     client.exchangePublicToken(publicToken, (error, tokenResponse) => {
