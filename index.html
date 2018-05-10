@@ -122,26 +122,31 @@
         <div id="banks" class="d-none"></div>
         <div id="crypto" class="d-none"></div>
         <div id="transactions" class="d-none"></div>
-        <div id="groups"></div>
-        <div id="calendar"></div>
-        <div id="chart">
-          <div class="d-flex justify-content-center mb-1">
-            <div class="btn-group hidden" role="group">
-              <button id="chartTransactionThisWeek" type="button" class="btn btn-secondary">This week</button>
-              <button id="chartTransactionThisMonth" type="button" class="btn btn-secondary">This month</button>
-              <button id="chartTransactionLastMonth" type="button" class="btn btn-secondary">Last month</button>
-              <button id="chartTransactionThisYear" type="button" class="btn btn-secondary">This year</button>
+        <div id="groups" class="d-none"></div>
+        <div id="calendar" class="d-none">
+          <div id="transactionsByDate"></div>
+          <div id="calendarContainer"></div>
+        </div>
+        <div id="chart" class="d-none">
+          <div>
+            <div class="d-flex justify-content-center mb-1">
+              <div class="btn-group" role="group" id="chartTransactionButtonBar">
+                <button id="chartTransactionThisWeek" type="button" class="btn btn-primary">This week</button>
+                <button id="chartTransactionThisMonth" type="button" class="btn btn-secondary">This month</button>
+                <button id="chartTransactionLastMonth" type="button" class="btn btn-secondary">Last month</button>
+                <button id="chartTransactionThisYear" type="button" class="btn btn-secondary">This year</button>
+              </div>
             </div>
-          </div>
-          <div class="row">
-            <div class="col-md-6 col-lg-6">
-            <div id="chartContainer">
-              <canvas id="chartCanvas" width="700" height="700"></canvas>
-            </div>
-            </div>
-            <div class="col-md-6 col-lg-6">
-              <div id="chartTransactions">
-                <span>Click a ting</span>
+            <div class="row">
+              <div class="col-md-6 col-lg-6">
+              <div id="chartContainer">
+                <canvas id="chartCanvas" width="700" height="700"></canvas>
+              </div>
+              </div>
+              <div class="col-md-6 col-lg-6">
+                <div id="chartTransactions">
+                  <span class="d-flex justify-content-center align-items-center alert alert-info"><i class="fa fa-info"></i> Click a category to view transaction data.</span>
+                </div>
               </div>
             </div>
           </div>

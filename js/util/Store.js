@@ -67,6 +67,10 @@ let Store = function() {
   }
 
   this.getTransactionsForDate = (date) => {
+    return this.allTransactions.filter(transaction => transaction.date === date);
+  }
+
+  this.getTransactionsSummaryForDate = (date) => {
     const transactionForDate = {
       debit: 0,
       credit: 0

@@ -187,7 +187,6 @@ function drawers() {
     markup += `
       <thead>
         <tr>
-          <!--td>Account</td-->
           <td>Name</td>
           <td>Amount</td>
           <td>Date</td>
@@ -207,9 +206,7 @@ function drawers() {
         contextClass = 'text-danger';
         transactionAmount = transaction.amount;
       }
-      //<td>${transactionObject.accounts.filter(a => a.account_id === transaction.account_id)[0].name}</td>
       markup += `<tr>
-        
         <td>${transaction.name}</td>
         <td><span class="${contextClass}">$${transactionAmount}</span></td>
         <td>${transaction.date}</td>
@@ -217,6 +214,14 @@ function drawers() {
       </tr>`;
     });
 
+    markup += `</tbody>
+      <tfoot>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+      </tfoot>
+    </table>`;
     return markup;
   };
 
@@ -262,15 +267,23 @@ function drawers() {
       });
     });
 
-    markup += '</tbody></table>';
+    markup += `</tbody>
+      <tfoot>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+      </tfoot>
+    </table>`;
     return markup;
   }
 
   this.drawTransactionForDate = transactionData => {
     let markup = '';
-    
-    markup += `<span class="text-danger">$${helpers.round(transactionData.debit, 2)}</span><br>`;
-    markup += `<span class="text-success">$${helpers.round(transactionData.credit, 2)}</span>`;
+
+    markup += `<span class="d-flex justify-content-center align-items-center text-danger">$${helpers.round(transactionData.debit, 2)}</span><br>`;
+    markup += `<span class="d-flex justify-content-center align-items-center text-success">$${helpers.round(transactionData.credit, 2)}</span>`;
     return markup;
   }
 

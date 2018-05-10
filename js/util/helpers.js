@@ -10,6 +10,10 @@ const helpers = {
     };
     return shift(Math.round(shift(num, +pre)), -pre);
   },
+  intVal:  i => typeof i === 'string' ?
+        i.replace(/[\$,]/g, '') * 1 :
+        typeof i === 'number' ?
+            i : 0,
 };
 
 module.exports = helpers;

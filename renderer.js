@@ -24,6 +24,7 @@ const pages = {
   banks: 'Banks',
   crypto: 'Cryptocurrency',
   transactions: 'Transactions',
+  calendar: 'Calendar',
   groups: 'Groups',
   chart: 'Transaction Breakdown',
 };
@@ -36,8 +37,26 @@ const titles = {
   Banks: 'banks',
   Cryptocurrency: 'crypto',
   Transactions: 'transactions',
+  Calendar: 'calendar',
   Groups: 'groups',
   'Transaction Breakdown': 'chart',
+};
+
+let transactionBreakdown;
+let colors = [
+  'rgba(255,99,132,1)',
+  'rgba(54, 162, 235, 1)',
+  'rgba(255, 206, 86, 1)',
+  'rgba(75, 192, 192, 1)',
+  'rgba(153, 102, 255, 1)',
+  'rgba(255, 159, 64, 1)'
+];
+
+const activeDateRanges = {
+  thisWeek: true,
+  thisMonth: false,
+  lastMonth: false,
+  thisYear: false,
 };
 
 api.init();
@@ -349,7 +368,7 @@ const drawAll = () => {
 
 const attachGroupHandlers = () => {
   Store.groups.forEach(group => {
-    $(`#group${group.id}`).on('click', e => {
+    $(`#group${group.id}`).on('click', function(e) {
       api.deleteGroup(group.id).then(res => {
         getCurrentWindow().reload();
       });
@@ -358,28 +377,38 @@ const attachGroupHandlers = () => {
 }
 
 const attachChartHandlers = () => {
-  $('#chartTransactionThisWeek').on('click', e => {
+  $('#chartTransactionThisWeek').on('click', function(e) {
+    activeDateRanges.thisWeek = !activeDateRanges.thisWeek;
+    $('#chartTransactionButtonBar > button.btn-primary').removeClass('btn-primary').addClass('btn-secondary');
+    $(this).addClass('btn-primary').removeClass('btn-secondary');
     drawTransactionBreakdown('thisWeek');
   });
 
-  $('#chartTransactionThisMonth').on('click', e => {
+  $('#chartTransactionThisMonth').on('click', function(e) {
+    activeDateRanges.thisMonth = !activeDateRanges.thisMonth;
+    $('#chartTransactionButtonBar > button.btn-primary').removeClass('btn-primary').addClass('btn-secondary');
+    $(this).addClass('btn-primary').removeClass('btn-secondary');
     drawTransactionBreakdown('thisMonth');
   });
 
-  $('#chartTransactionLastMonth').on('click', e => {
+  $('#chartTransactionLastMonth').on('click', function(e) {
+    activeDateRanges.lastMonth = !activeDateRanges.lastMonth;
+    $('#chartTransactionButtonBar > button.btn-primary').removeClass('btn-primary').addClass('btn-secondary');
+    $(this).addClass('btn-primary').removeClass('btn-secondary');
     drawTransactionBreakdown('lastMonth');
   });
 
-  $('#chartTransactionThisYear').on('click', e => {
+  $('#chartTransactionThisYear').on('click', function(e) {
+    activeDateRanges.thisYear = !activeDateRanges.thisYear;
+    $('#chartTransactionButtonBar > button.btn-primary').removeClass('btn-primary').addClass('btn-secondary');
+    $(this).addClass('btn-primary').removeClass('btn-secondary');
     drawTransactionBreakdown('thisYear');
   });
 }
 
 const drawTransactions = () => {
   $('#transactions').html(drawer.drawTransactions(Store));
-  $('#transactionsTable').DataTable();
-  $('.dataTables_filter').addClass('float-right');
-  $('.dataTables_paginate').addClass('float-right');
+  initializeDataTable('transactionsTable', 'transactions');
   feather.replace();
 }
 
@@ -420,14 +449,20 @@ const drawContextBalance = (balance) => {
 }
 
 const drawCalendarTransactions = () => {
-  $('#calendar').fullCalendar({
+  $('#calendarContainer').fullCalendar({
     defaultView: 'month',
     dayRender: (date, cell) => {
       if(date.isAfter(moment().format('YYYY-MM-DD'))) {
         return;
       }
-      const transactionData = Store.getTransactionsForDate(date.format());
+      const transactionData = Store.getTransactionsSummaryForDate(date.format());
       $(cell).html(drawer.drawTransactionForDate(transactionData));
+    },
+    dayClick: (date, jsEvent, view) => {
+      const transactionData = Store.getTransactionsForDate(date.format());
+      $('#transactionsByDate').html(
+        `<h3>Charges on ${date.format('MMMM Do YYYY')}</h3>${drawer.drawTransactionsByCategory(transactionData)}`
+      );
     }
   });
 }
@@ -437,9 +472,9 @@ const isInDateRange = (date, dateRange) => {
     case 'thisWeek':
       return moment(date).isSame(moment(), 'week');
     case 'thisMonth':
-    return moment(date).isSame(moment(), 'month');
+      return moment(date).isSame(moment(), 'month');
     case 'lastMonth':
-    return moment(date).isSame(moment().subtract(1, 'month'), 'month');
+      return moment(date).isSame(moment().subtract(1, 'month'), 'month');
     case 'thisYear':
       return true; // all transactions are for the year
   }
@@ -449,15 +484,24 @@ const drawTransactionBreakdown = (dateRange) => {
   const ctx = document.getElementById("chartCanvas").getContext('2d');
   const transactionDataset = [];
   const transactionDataLabels = [];
-  let colors = [
-    'rgba(255,99,132,1)',
-    'rgba(54, 162, 235, 1)',
-    'rgba(255, 206, 86, 1)',
-    'rgba(75, 192, 192, 1)',
-    'rgba(153, 102, 255, 1)',
-    'rgba(255, 159, 64, 1)'
-  ];
   const groupedTransactions = helpers.groupBy(Store.allTransactions, 'mainCategory');
+  let data;
+  let options = {
+    onClick: (e, data) => {
+      const key = data[0]._model.label === 'Uncategorized' ? 'undefined' : data[0]._model.label;
+      
+      $('#chartTransactions').html(
+        drawer.drawTransactionsByCategory(
+          groupedTransactions[key].filter(transaction => {
+            return isInDateRange(transaction.date, dateRange)  
+          })
+        )
+      );
+
+      initializeDataTable('transactionsCategoryTable', 'categories');
+    }
+  };
+  
   Object.keys(groupedTransactions)
         .forEach(key => {
           let total = 0;
@@ -473,7 +517,7 @@ const drawTransactionBreakdown = (dateRange) => {
             }
           });
 
-          transactionDataset.push(total);
+          transactionDataset.push(Math.abs(total));
         });
 
   while(colors.length < transactionDataLabels.length) {
@@ -482,29 +526,72 @@ const drawTransactionBreakdown = (dateRange) => {
   while(colors.length !== transactionDataLabels.length) {
     colors.pop();
   }
-  const myChart = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      datasets: [{
-        data: transactionDataset,
-        backgroundColor: colors,
-      }],
-      labels: transactionDataLabels
-    },
-    options: {
-      onClick: (e, data) => {
-        const key = data[0]._model.label === 'Uncategorized' ? 'undefined' : data[0]._model.label;
+
+  data = {
+    datasets: [{
+      data: transactionDataset,
+      backgroundColor: colors,
+    }],
+    labels: transactionDataLabels
+  };
+
+  if(!transactionBreakdown) {
+    transactionBreakdown = new Chart(ctx, {
+      type: 'doughnut',
+      data,
+      options,
+    });
+  }
+  else {
+    setTimeout(() => {
+      transactionBreakdown.options = options;
+      transactionBreakdown.data = data;
+      transactionBreakdown.data.labels = transactionDataLabels;
+      transactionBreakdown.update();
+    }, 0);
+  }
+}
+
+const initializeDataTable = (id, type) => {
+  if($.fn.dataTable.isDataTable(`#${id}`)) {
+    return;
+  }
+  $(`#${id}`).DataTable({
+    'footerCallback': function (row, data, start, end, display) {
+        var api = this.api(), data;
+        const columnIndex = type === 'transactions' ? 2 : 1;
+        // Total credit over this page
+        pageTotalCredits = api
+          .column(columnIndex, { page: 'current'} )
+          .data()
+          .reduce((a, b) => {
+              if($(b).attr('class') === 'text-danger') {
+                return a;
+              }
+              let value = $(b).text().substr(1);
+              return a + helpers.intVal(value);
+          }, 0);
         
-        $('#chartTransactions').html(
-          drawer.drawTransactionsByCategory(
-            groupedTransactions[key].filter(transaction => {
-              return isInDateRange(transaction.date, dateRange)  
-            })
-          )
+        pageTotalDebits = api
+          .column(columnIndex, { page: 'current'} )
+          .data()
+          .reduce((a, b) => {
+              if($(b).attr('class') === 'text-success') {
+                return a;
+              }
+              let value = $(b).text().substr(1);
+              return a + helpers.intVal(value);
+          }, 0);
+
+        // Update footer
+        $(api.column(2).footer()).html(
+            `Credit: $${helpers.round(pageTotalCredits, 2)} Debit: ($${helpers.round(pageTotalDebits, 2)})`
         );
-      }
-    },
+    }
   });
+
+  $('.dataTables_filter').addClass('float-right');
+  $('.dataTables_paginate').addClass('float-right');
 }
 
 const setupCryptoSuggestions = (crypto) => {
