@@ -13,19 +13,11 @@ let mainWindow
 
 function createWindow () {
   // Create the browser window.
-  if(process.platform !== 'darwin') {
-    mainWindow = new BrowserWindow({
-      width: 1280,
-      height: 720
-    });
-  }
-  else {
-    mainWindow = new BrowserWindow({
-      width: 1280,
-      height: 720,
-      titleBarStyle: 'hidden'
-    });
-  }
+  mainWindow = new BrowserWindow({
+    width: 1280,
+    height: 720
+  });
+  
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'index.html'),

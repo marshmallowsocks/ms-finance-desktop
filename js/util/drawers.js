@@ -127,7 +127,8 @@ function drawers() {
         subTitle: account.mask,
         balance: Store.cleanBalance(account.balances),
         positive: true,
-        officialName: account.official_name
+        officialName: account.official_name,
+        type: 'crypto'
       });
     });
     return markup;
@@ -217,7 +218,7 @@ function drawers() {
     return markup;
   }
 
-  const drawCard = ({title, subTitle, balance, positive, officialName, credit}) => {
+  const drawCard = ({title, subTitle, balance, positive, officialName, credit, type}) => {
     const signType = positive ? 'badge-success' : 'badge-danger';
     let additionalInfo = '';
     if(balance === -Infinity) {
@@ -235,8 +236,11 @@ function drawers() {
         creditUsed = ((Math.ceil(credit.limit) - credit.available)/Math.ceil(credit.limit)) * 100;
 
         additionalInfo += `<div class="progress" style="height:25px;">
-          <div class="progress-bar bg-success" role="progressbar" style="width: ${creditAvailable}%">$${credit.available}</div>
-          <div class="progress-bar bg-danger" role="progressbar" style="width: ${creditUsed}%">$${helpers.round(Math.ceil(credit.limit) - credit.available, 2)}</div>
+          <div class="progress-bar progress-bar-striped bg-success" role="progressbar" style="width: ${creditAvailable}%">$${credit.available}</div>
+          <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" style="width: ${creditUsed}%">$${helpers.round(Math.ceil(credit.limit) - credit.available, 2)}</div>
+        </div>`;
+        additionalInfo += `<div class="progress" style="height:25px;">
+          <div class="progress-bar bg-warning" role="progressbar" style="width: 100%">$${credit.limit}</div>
         </div>`;
       }
       else {
