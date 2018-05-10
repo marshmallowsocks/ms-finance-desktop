@@ -2,8 +2,9 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
-const moment = require('moment');
+//const moment = require('moment');
 const { getCurrentWindow, globalShortcut } = require('electron').remote;
+
 const constants = require('./js/util/constants');
 const api = require('./js/api/plaid-api');
 const StoreCreator = require('./js/util/Store');
@@ -335,6 +336,7 @@ const drawAll = () => {
   attachGroupHandlers();
   drawNetBalance(Store.netBalance);
   drawContextBalance(Store.netBalance);
+  drawCalendarTransactions();
   hideLoader();
 }
 
@@ -391,6 +393,19 @@ const drawContextBalance = (balance) => {
   $('#contextBalance').html(contextBalanceMarkup.balance);
 }
 
+const drawCalendarTransactions = () => {
+  $('#calendar').fullCalendar({
+    defaultView: 'month',
+    dayRender: (date, cell) => {
+      if(date.isAfter(moment().format('YYYY-MM-DD'))) {
+        return;
+      }
+      const transactionData = Store.getTransactionsForDate(date.format());
+      $(cell).html(drawer.drawTransactionForDate(transactionData));
+    }
+  });
+}
+
 const setupCryptoSuggestions = (crypto) => {
   const source = [];
   let suggestions;
@@ -427,3 +442,4 @@ const setupCryptoSuggestions = (crypto) => {
 
 // starting point
 pageInit();
+

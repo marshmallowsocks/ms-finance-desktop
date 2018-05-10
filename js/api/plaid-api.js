@@ -181,8 +181,8 @@ const api = {
       .then(accessTokenObject => {
         client.getTransactions(
           accessTokenObject.access_token,
-          moment().startOf('isoWeek').format('YYYY-MM-DD'),
-          moment().endOf('isoWeek').format('YYYY-MM-DD'),
+          moment().startOf('year').format('YYYY-MM-DD'),
+          moment().format('YYYY-MM-DD'),
           (err, transactionsResponse) => {
             if(err != null) {
               reject(Error(JSON.stringify(err)));

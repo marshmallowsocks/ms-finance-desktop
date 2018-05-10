@@ -53,7 +53,37 @@ let Store = function() {
   }
 
   this.addAllTransactions = (transactions) => {
+    
+    transactions.forEach(transactionObject => {
+      transactionObject.transactions.forEach(transaction => {
+        if(transaction.category && transaction.category.length) {
+          transaction.mainCategory = transaction.category.shift();
+        }
+      });
+      this.allTransactions = [...this.allTransactions, ...transactionObject.transactions];
+    });
+
     this.transactions = transactions;
+  }
+
+  this.getTransactionsForDate = (date) => {
+    const transactionForDate = {
+      debit: 0,
+      credit: 0
+    };
+
+    this.allTransactions.forEach(transaction => {
+      if(transaction.date === date) {
+        if(transaction.amount < 0) {
+          transactionForDate.credit -= transaction.amount;
+        }
+        else {
+          transactionForDate.debit += transaction.amount;
+        }
+      }
+    });
+
+    return transactionForDate;
   }
 
   this.getCryptoInformation = symbol => this.allCrypto.filter(c => c.symbol === symbol)[0];
@@ -110,6 +140,7 @@ let Store = function() {
   this.allCrypto = {};
   this.allAccounts = [];
   this.transactions = [];
+  this.allTransactions = [];
   this.groups = [];
   this.netBalance = 0;
   this.cashBalance = 0;

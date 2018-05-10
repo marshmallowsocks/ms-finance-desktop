@@ -184,6 +184,7 @@ function drawers() {
 
   this.drawTransactions = Store => {
     const transactionData = [];
+    console.log(helpers.groupBy(Store.allTransactions, 'mainCategory'));
     let markup = '<table class="table table-striped" style="width:100%" id="transactionsTable">';
 
     if(Store.transactions.length === 0) {
@@ -204,10 +205,20 @@ function drawers() {
     `;
     Store.transactions.forEach(transactionObject => {
       transactionObject.transactions.forEach(transaction => {
+        let contextClass;
+        let transactionAmount = 0;
+        if(transaction.amount < 0) {
+          contextClass = 'text-success';
+          transactionAmount = -transaction.amount;
+        }
+        else {
+          contextClass = 'text-danger';
+          transactionAmount = transaction.amount;
+        }
         markup += `<tr>
           <td>${transactionObject.accounts.filter(a => a.account_id === transaction.account_id)[0].name}</td>
           <td>${transaction.name}</td>
-          <td>$${transaction.amount}</td>
+          <td><span class="${contextClass}">$${transactionAmount}</span></td>
           <td>${transaction.date}</td>
           <td>${!transaction.pending ? '<i class="fa fa-check-square"></i>' : '<i class="fa fa-square"></i>'}</td>
         </tr>`;
@@ -215,6 +226,14 @@ function drawers() {
     });
 
     markup += '</tbody></table>';
+    return markup;
+  }
+
+  this.drawTransactionForDate = transactionData => {
+    let markup = '';
+    
+    markup += `<span class="text-danger">${helpers.round(transactionData.debit, 2)}</span><br>`;
+    markup += `<span class="text-success">${helpers.round(transactionData.credit, 2)}</span>`;
     return markup;
   }
 
