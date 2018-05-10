@@ -23,6 +23,7 @@
     "eslint-plugin-import": "^2.11.0"
   },
   "dependencies": {
+    "chart.js": "^2.7.2",
     "dexie": "^2.0.3",
     "indexeddb-export-import": "^1.0.3",
     "moment": "2.19.x",

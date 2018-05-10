@@ -70,6 +70,12 @@
               </a>
             </li>
             <li class="nav-item">
+              <a class="nav-link" href="#" data-goto="chart">
+                <span data-feather="grid"></span>
+                Transaction Breakdown
+              </a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link" href="#" data-goto="calendar">
                 <span data-feather="calendar"></span>
                 Calendar
@@ -118,6 +124,28 @@
         <div id="transactions" class="d-none"></div>
         <div id="groups"></div>
         <div id="calendar"></div>
+        <div id="chart">
+          <div class="d-flex justify-content-center mb-1">
+            <div class="btn-group hidden" role="group">
+              <button id="chartTransactionThisWeek" type="button" class="btn btn-secondary">This week</button>
+              <button id="chartTransactionThisMonth" type="button" class="btn btn-secondary">This month</button>
+              <button id="chartTransactionLastMonth" type="button" class="btn btn-secondary">Last month</button>
+              <button id="chartTransactionThisYear" type="button" class="btn btn-secondary">This year</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 col-lg-6">
+            <div id="chartContainer">
+              <canvas id="chartCanvas" width="700" height="700"></canvas>
+            </div>
+            </div>
+            <div class="col-md-6 col-lg-6">
+              <div id="chartTransactions">
+                <span>Click a ting</span>
+              </div>
+            </div>
+          </div>
+        </div>
         <div id="loading" class="d-none row h-100 justify-content-center align-items-center">
           <span class="fa fa-refresh fa-spin fa-5x"></span>
         </div>

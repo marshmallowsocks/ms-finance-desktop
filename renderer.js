@@ -4,9 +4,12 @@
 
 //const moment = require('moment');
 const { getCurrentWindow, globalShortcut } = require('electron').remote;
+const Chart  = require('chart.js');
 
 const constants = require('./js/util/constants');
 const api = require('./js/api/plaid-api');
+const helpers = require('./js/util/helpers');
+
 const StoreCreator = require('./js/util/Store');
 const DrawerCreator = require('./js/util/drawers');
 
@@ -22,6 +25,7 @@ const pages = {
   crypto: 'Cryptocurrency',
   transactions: 'Transactions',
   groups: 'Groups',
+  chart: 'Transaction Breakdown',
 };
 
 const titles = {
@@ -32,7 +36,8 @@ const titles = {
   Banks: 'banks',
   Cryptocurrency: 'crypto',
   Transactions: 'transactions',
-  Groups: 'groups'
+  Groups: 'groups',
+  'Transaction Breakdown': 'chart',
 };
 
 api.init();
@@ -113,6 +118,9 @@ const pageInit = () => {
                  .then(result => {
                    Store.addAllTransactions(result);
                    drawTransactions();
+                   drawCalendarTransactions();
+                   drawTransactionBreakdown('thisWeek');
+                   attachChartHandlers();
                  });
         })
         .catch(err => {
@@ -336,7 +344,6 @@ const drawAll = () => {
   attachGroupHandlers();
   drawNetBalance(Store.netBalance);
   drawContextBalance(Store.netBalance);
-  drawCalendarTransactions();
   hideLoader();
 }
 
@@ -349,6 +356,25 @@ const attachGroupHandlers = () => {
     });
   });
 }
+
+const attachChartHandlers = () => {
+  $('#chartTransactionThisWeek').on('click', e => {
+    drawTransactionBreakdown('thisWeek');
+  });
+
+  $('#chartTransactionThisMonth').on('click', e => {
+    drawTransactionBreakdown('thisMonth');
+  });
+
+  $('#chartTransactionLastMonth').on('click', e => {
+    drawTransactionBreakdown('lastMonth');
+  });
+
+  $('#chartTransactionThisYear').on('click', e => {
+    drawTransactionBreakdown('thisYear');
+  });
+}
+
 const drawTransactions = () => {
   $('#transactions').html(drawer.drawTransactions(Store));
   $('#transactionsTable').DataTable();
@@ -403,6 +429,81 @@ const drawCalendarTransactions = () => {
       const transactionData = Store.getTransactionsForDate(date.format());
       $(cell).html(drawer.drawTransactionForDate(transactionData));
     }
+  });
+}
+
+const isInDateRange = (date, dateRange) => {
+  switch(dateRange) {
+    case 'thisWeek':
+      return moment(date).isSame(moment(), 'week');
+    case 'thisMonth':
+    return moment(date).isSame(moment(), 'month');
+    case 'lastMonth':
+    return moment(date).isSame(moment().subtract(1, 'month'), 'month');
+    case 'thisYear':
+      return true; // all transactions are for the year
+  }
+}
+
+const drawTransactionBreakdown = (dateRange) => {
+  const ctx = document.getElementById("chartCanvas").getContext('2d');
+  const transactionDataset = [];
+  const transactionDataLabels = [];
+  let colors = [
+    'rgba(255,99,132,1)',
+    'rgba(54, 162, 235, 1)',
+    'rgba(255, 206, 86, 1)',
+    'rgba(75, 192, 192, 1)',
+    'rgba(153, 102, 255, 1)',
+    'rgba(255, 159, 64, 1)'
+  ];
+  const groupedTransactions = helpers.groupBy(Store.allTransactions, 'mainCategory');
+  Object.keys(groupedTransactions)
+        .forEach(key => {
+          let total = 0;
+          if(key === 'undefined') {
+            transactionDataLabels.push('Uncategorized');  
+          }
+          else {
+            transactionDataLabels.push(key);
+          }
+          groupedTransactions[key].forEach(transaction => {
+            if(isInDateRange(transaction.date, dateRange)) {
+              total += transaction.amount;
+            }
+          });
+
+          transactionDataset.push(total);
+        });
+
+  while(colors.length < transactionDataLabels.length) {
+    colors = [...colors, ...colors];
+  }
+  while(colors.length !== transactionDataLabels.length) {
+    colors.pop();
+  }
+  const myChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: transactionDataset,
+        backgroundColor: colors,
+      }],
+      labels: transactionDataLabels
+    },
+    options: {
+      onClick: (e, data) => {
+        const key = data[0]._model.label === 'Uncategorized' ? 'undefined' : data[0]._model.label;
+        
+        $('#chartTransactions').html(
+          drawer.drawTransactionsByCategory(
+            groupedTransactions[key].filter(transaction => {
+              return isInDateRange(transaction.date, dateRange)  
+            })
+          )
+        );
+      }
+    },
   });
 }
 

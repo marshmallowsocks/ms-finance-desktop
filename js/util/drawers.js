@@ -182,9 +182,46 @@ function drawers() {
     return markup;
   };
 
+  this.drawTransactionsByCategory = transactions => {
+    let markup = '<table class="table table-striped" style="width:100%" id="transactionsCategoryTable">';
+    markup += `
+      <thead>
+        <tr>
+          <!--td>Account</td-->
+          <td>Name</td>
+          <td>Amount</td>
+          <td>Date</td>
+          <td>Posted</td>
+        </tr>
+      </thead>
+      <tbody>
+    `;
+    transactions.forEach(transaction => {
+      let contextClass;
+      let transactionAmount = 0;
+      if(transaction.amount < 0) {
+        contextClass = 'text-success';
+        transactionAmount = -transaction.amount;
+      }
+      else {
+        contextClass = 'text-danger';
+        transactionAmount = transaction.amount;
+      }
+      //<td>${transactionObject.accounts.filter(a => a.account_id === transaction.account_id)[0].name}</td>
+      markup += `<tr>
+        
+        <td>${transaction.name}</td>
+        <td><span class="${contextClass}">$${transactionAmount}</span></td>
+        <td>${transaction.date}</td>
+        <td>${!transaction.pending ? '<i class="fa fa-check-square"></i>' : '<i class="fa fa-square"></i>'}</td>
+      </tr>`;
+    });
+
+    return markup;
+  };
+
   this.drawTransactions = Store => {
     const transactionData = [];
-    console.log(helpers.groupBy(Store.allTransactions, 'mainCategory'));
     let markup = '<table class="table table-striped" style="width:100%" id="transactionsTable">';
 
     if(Store.transactions.length === 0) {
@@ -232,8 +269,8 @@ function drawers() {
   this.drawTransactionForDate = transactionData => {
     let markup = '';
     
-    markup += `<span class="text-danger">${helpers.round(transactionData.debit, 2)}</span><br>`;
-    markup += `<span class="text-success">${helpers.round(transactionData.credit, 2)}</span>`;
+    markup += `<span class="text-danger">$${helpers.round(transactionData.debit, 2)}</span><br>`;
+    markup += `<span class="text-success">$${helpers.round(transactionData.credit, 2)}</span>`;
     return markup;
   }
 
