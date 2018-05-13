@@ -83,6 +83,46 @@ class Store {
     return this.allTransactions.filter(transaction => transaction.date === date);
   }
 
+  getTransactionsSummaryForMonth(date) {
+    const transactionForDate = {
+      debit: 0,
+      credit: 0
+    };
+
+    this.allTransactions.forEach(transaction => {
+      if(moment(transaction.date).isSame(date, 'month')) {
+        if(transaction.amount < 0) {
+          transactionForDate.credit -= transaction.amount;
+        }
+        else {
+          transactionForDate.debit += transaction.amount;
+        }
+      }
+    });
+
+    return transactionForDate;
+  }
+
+  getTransactionsSummaryForWeek(date) {
+    const transactionForDate = {
+      debit: 0,
+      credit: 0
+    };
+
+    this.allTransactions.forEach(transaction => {
+      if(moment(transaction.date).isSame(date, 'week')) {
+        if(transaction.amount < 0) {
+          transactionForDate.credit -= transaction.amount;
+        }
+        else {
+          transactionForDate.debit += transaction.amount;
+        }
+      }
+    });
+
+    return transactionForDate;
+  }
+
   getTransactionsSummaryForDate (date) {
     const transactionForDate = {
       debit: 0,

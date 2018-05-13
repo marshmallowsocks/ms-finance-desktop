@@ -89,8 +89,62 @@ const drawCard = ({title, subTitle, balance, positive, officialName, credit, typ
 }
 
 class MarkupGenerator {
-  drawOverview(Store) { // eslint-disable-line arrow-body-style
-    return `${this.drawAccountCards(Store)}<hr>${this.drawCreditCards(Store)}<hr>${this.drawInvestmentCards(Store)}<hr>${this.drawCryptoCards(Store)}`;
+  drawOverview(Store) {
+    let markup = '';
+    markup += `
+      <div class="row">
+        <div class="col-md-6 col-lg-6">
+        <div class="card">
+          <div class="card-img-top">
+            <canvas id="budgetCanvas" width="200" height="200"></canvas>
+          </div>
+          <div class="card-body">
+            <h5 class="card-title">Monthly Expenses</h5>
+            <h6 class="card-subtitle mb-2 text-muted">Your average expenses per month for ${moment().get('year')}</h6>
+            <p class="card-text">
+              You've spent an average of <span id="budgetForMonth" class="font-weight-bold"></span> per month this year.
+              This number could be inflated by transfers between your own accounts.<br>
+              Use the calendar section to know more!
+            </p>
+          </div>
+        </div>
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title">Splitwise</h5>
+            <p class="card-text">
+              Coming soon.
+            </p>
+          </div>
+        </div>
+        </div>
+        <div class="col-md-6 col-lg-6">
+        <div class="card">
+          <div class="card-img-top">
+            <canvas id="yearSpendCanvas" width="200" height="200"></canvas>
+          </div>
+          <div class="card-body">
+            <h5 class="card-title">Income and Expenses</h5>
+            <h6 class="card-subtitle mb-2 text-muted">Your net savings/expenses per month.</h6>
+            <p class="card-text">Data may be inflated by transfers between your own accounts. <br>
+              Check the <span class="font-weight-bold">Transfer</span> category under Transaction Breakdown to verify.
+            </p>
+          </div>
+        </div>
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title">This week</h5>
+            <h6 class="card-subtitle mb-2 text-muted">Have you been overspending?</h6>
+            <p class="card-text">
+              You've spent <span class="font-weight-bold" id="thisWeekOverview"></span> recently.<br>
+              Use the transaction breakdown section to know more!
+            </p>
+          </div>
+        </div>
+        </div>
+      </div>
+    `;
+    return markup;
+    //return `${this.drawAccountCards(Store)}<hr>${this.drawCreditCards(Store)}<hr>${this.drawInvestmentCards(Store)}<hr>${this.drawCryptoCards(Store)}`;
   }
 
   drawAccountCards(Store) {

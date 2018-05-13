@@ -28,6 +28,7 @@
     "indexeddb-export-import": "^1.0.3",
     "moment": "2.19.x",
     "npm": "^6.0.1",
-    "plaid": "2.3.x"
+    "plaid": "2.3.x",
+    "splitwise": "^1.0.0"
   }
 }

@@ -2,3 +2,4 @@ node_modules
 .vscode
 constants.json.bak
 exportedDB.json
+app_config_ignore

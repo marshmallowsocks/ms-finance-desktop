@@ -407,6 +407,7 @@ const drawAll = () => {
   drawTransactions();
   drawCalendarTransactions();
   drawTransactionBreakdown('thisWeek');
+  drawBudgetForYear();
   attachChartHandlers();
   attachGroupHandlers();
   drawNetBalance(Store.netBalance);
@@ -528,8 +529,64 @@ const isInDateRange = (date, dateRange) => {
   }
 }
 
+const drawBudgetForYear = () => {
+  const ctx = document.getElementById('budgetCanvas').getContext('2d');  
+  const transactions = [];
+  const week = Store.getTransactionsSummaryForWeek(moment().get('week'));
+
+  for(let i = 0; i <= moment().get('month'); i++) {
+    transactions.push(Store.getTransactionsSummaryForMonth(moment().set('month', i)));
+  }
+  
+  const total = transactions.reduce((runningSum, transaction) => {
+    return runningSum + transaction.debit; 
+  }, 0);
+
+  const sum = total/moment().get('month');
+
+  $('#budgetForMonth').html(`$${helpers.round(sum, 2)}`);
+  $('#thisWeekOverview').html(`$${helpers.round(week.debit, 2)}`);
+  const budgetChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      datasets: [{
+        label: 'Gross Expenses',
+        data: transactions.map(t => t.debit),
+        borderColor: 'rgba(255,99,132,1)',
+      }]
+    }
+  });
+  
+  new Chart(document.getElementById("yearSpendCanvas"), {
+    type: 'bar',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      datasets: [
+        {
+          label: 'Expense',
+          backgroundColor: 'rgba(255,99,132,1)',
+          data: transactions.map(t => t.debit)
+        },
+        {
+          label: 'Income',
+          backgroundColor: 'rgba(75, 192, 192, 1)',
+          data: transactions.map(t => t.credit)
+        }
+      ],
+    },
+    options: {
+      legend: { display: false },
+      title: {
+        display: true,
+        text: 'Net Expense/Income'
+      }
+    }
+  });
+}
+
 const drawTransactionBreakdown = (dateRange) => {
-  const ctx = document.getElementById("chartCanvas").getContext('2d');
+  const ctx = document.getElementById('chartCanvas').getContext('2d');
   const transactionDataset = [];
   const transactionDataLabels = [];
   const groupedTransactions = helpers.groupBy(Store.allTransactions, 'mainCategory');
