@@ -53,7 +53,6 @@ let Store = function() {
   }
 
   this.addAllTransactions = (transactions) => {
-    
     transactions.forEach(transactionObject => {
       transactionObject.transactions.forEach(transaction => {
         if(transaction.category && transaction.category.length) {

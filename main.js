@@ -15,7 +15,7 @@ function createWindow () {
   // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 1280,
-    height: 720
+    height: 720,
   });
   
   // and load the index.html of the app.
@@ -40,7 +40,7 @@ function createWindow () {
     window.setMenu(null);
   });
 
-  //mainWindow.setMenu(null);
+  mainWindow.setMenu(null);
 }
 
 // This method will be called when Electron has finished

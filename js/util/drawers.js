@@ -302,15 +302,57 @@ function drawers() {
       let creditUsed = 'Could not calculate usage.';
       if(Number.isFinite(credit.limit) && Number.isFinite(credit.available) && credit.limit !== 0) {
         let creditAvailable = (credit.available/Math.ceil(credit.limit)) * 100;
-        creditUsed = ((Math.ceil(credit.limit) - credit.available)/Math.ceil(credit.limit)) * 100;
+        let progressHeading = '';
+        let availableHeading = '';
 
-        additionalInfo += `<div class="progress" style="height:25px;">
-          <div class="progress-bar progress-bar-striped bg-success" role="progressbar" style="width: ${creditAvailable}%">$${credit.available}</div>
-          <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" style="width: ${creditUsed}%">$${helpers.round(Math.ceil(credit.limit) - credit.available, 2)}</div>
+        creditUsed = ((Math.ceil(credit.limit) - credit.available)/Math.ceil(credit.limit)) * 100;
+        creditUsed = helpers.round(creditUsed, 2);
+        additionalInfo += `
+          Credit used: $${helpers.round(credit.limit - credit.available, 2)}/$${credit.limit}
+        `;
+        if(creditUsed < 8.5) {
+          progressHeading = 'span';
+          availableHeading = 'h3';
+        }
+        else if(creditUsed > 90) {
+          progressHeading = 'h3';
+          availableHeading = 'span';
+        }
+        else {
+          progressHeading = 'h3';
+          availableHeading = 'h3';
+        }
+
+        if(credit.used === 0) {
+          additionalInfo += `<div class="progress" style="height:60px;">
+            <div class="progress-bar progress-bar-striped bg-success" role="progressbar" style="width: ${creditAvailable}%"><${availableHeading}>$${credit.available}</${availableHeading}></div>
+          </div>`;
+        }
+        else {
+          additionalInfo += `<div class="progress" style="height:60px;">
+            <div class="progress-bar progress-bar-striped bg-success" role="progressbar" style="width: ${creditAvailable}%"><${availableHeading}>$${credit.available}</${availableHeading}></div>
+            <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" style="width: ${creditUsed}%"><${progressHeading}>$${helpers.round(Math.ceil(credit.limit) - credit.available, 2)}</${progressHeading}></div>
+          </div>`;
+        }
+        additionalInfo += `<div class="progress" style="height:60px;">
+          <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"><h3>$${credit.limit}</h3></div>
         </div>`;
-        additionalInfo += `<div class="progress" style="height:25px;">
-          <div class="progress-bar bg-warning" role="progressbar" style="width: 100%">$${credit.limit}</div>
-        </div>`;
+
+        if(creditUsed > 30) {
+          additionalInfo += `<div class="alert alert-danger mt-3"><i class="fa fa-warning"></i> Your usage (${creditUsed}%) is more than the worst case 30%. This will hurt your credit score.</div>`
+        }
+        else if(creditUsed === 30) {
+          additionalInfo += `<div class="alert alert-danger mt-3"><i class="fa fa-warning"></i> Your usage (${creditUsed}%) is exactly the worst case 30%. Do not put any more purchases on this card.</div>`
+        }
+        else if(creditUsed > 10) {
+          additionalInfo += `<div class="alert alert-warning mt-3"><i class="fa fa-warning"></i> Your usage (${creditUsed}%) is more than the recommended 10%. Try and pay some off to help usage!</div>`
+        }
+        else if(creditUsed === 10) {
+          additionalInfo += `<div class="alert alert-info mt-3"><i class="fa fa-info"></i> Your usage (${creditUsed}%) is exactly the recommended 10%. Try not to put any more purchases on this card.</div>`
+        }
+        else {
+          additionalInfo += `<div class="alert alert-info mt-3"><i class="fa fa-info"></i> Your usage (${creditUsed}%) is less than 10%. Good job! </div>`
+        }
       }
       else {
         additionalInfo += `Credit limit: ${Number.isFinite(credit.limit) ? '$' + Math.ceil(credit.limit) : 'The institution did not provide this information.'}<br>`;

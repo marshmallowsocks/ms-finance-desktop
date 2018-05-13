@@ -2,7 +2,6 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
-//const moment = require('moment');
 const { getCurrentWindow, globalShortcut } = require('electron').remote;
 const Chart  = require('chart.js');
 
@@ -62,8 +61,13 @@ const activeDateRanges = {
 api.init();
 
 const pageInit = () => {
+  // remove splash screen and show main screen.
+  $('.splash-header').addClass('animated fadeOut');
+  $('body').addClass('loaded');
+  $('nav.flex-md-nowrap').addClass('fixed-top');
   showLoader();
   $('#messageModal').modal({ show: false });
+  
   const initialFetchData = () => {
     return new Promise((resolve, reject) => {
       api.getAllInstitutionData()
@@ -201,6 +205,10 @@ $('#databaseExport').on('click', e => {
   });
 });
 
+$('#databaseImport').on('click', e => {
+  $('#importDatabase').click();
+})
+
 $('#importDatabase').on('change', e => {
   if(e.target.files.length === 0) {
     $('#modalMessage').html('No file selected.');
@@ -229,7 +237,6 @@ $('#importDatabase').on('change', e => {
       $('#modalMessage').html('Could not read file.');
       $('#messageModal').modal('show');
     }
-    
   }
 });
 
@@ -488,6 +495,9 @@ const drawTransactionBreakdown = (dateRange) => {
   let data;
   let options = {
     onClick: (e, data) => {
+      if(!data || data.length === 0) {
+        return; // a misclick.
+      }
       const key = data[0]._model.label === 'Uncategorized' ? 'undefined' : data[0]._model.label;
       
       $('#chartTransactions').html(
@@ -534,8 +544,11 @@ const drawTransactionBreakdown = (dateRange) => {
     }],
     labels: transactionDataLabels
   };
+  
+  if(transactionDataset.length === 0) {
 
-  if(!transactionBreakdown) {
+  }
+  else if(!transactionBreakdown) {
     transactionBreakdown = new Chart(ctx, {
       type: 'doughnut',
       data,
