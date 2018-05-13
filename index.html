@@ -13,228 +13,230 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-  <nav class="navbar flex-md-nowrap p-0 shadow">
-    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">MS Finance</a>
-    <div class="form-control form-control-dark w-100">Net balance: <span id="netBalance" class="float-right"></span></span></div>
-    <ul class="navbar-nav px-3">
-      <li class="nav-item text-nowrap">
-        <button class="btn btn-outline-success" id="link-btn" href="#"><span data-feather="plus"></span> Add Bank</button>
-        <button class="btn btn-outline-success" data-toggle="modal" data-target="#addCryptoModal"><span data-feather="plus"></span> Add Crypto</button>
-      </li>
-    </ul>
-  </nav>
+  <div>
+    <nav class="navbar flex-md-nowrap p-0 shadow">
+      <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">MS Finance</a>
+      <div class="form-control form-control-dark w-100">Net balance: <span id="netBalance" class="float-right"></span></span></div>
+      <ul class="navbar-nav px-3">
+        <li class="nav-item text-nowrap">
+          <button class="btn btn-outline-success" id="link-btn" href="#"><span data-feather="plus"></span> Add Bank</button>
+          <button class="btn btn-outline-success" data-toggle="modal" data-target="#addCryptoModal"><span data-feather="plus"></span> Add Crypto</button>
+        </li>
+      </ul>
+    </nav>
 
-  <div class="container-fluid">
-    <div class="row">
-      <nav class="col-md-2 d-none d-md-block bg-light sidebar">
-        <div-- class="sidebar-sticky">
-          <ul class="nav flex-column">
-            <li class="nav-item">
-              <a class="nav-link active" href="#" data-goto="overview">
-                <span data-feather="home"></span>
-                Overview <span class="sr-only">(current)</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#" data-goto="accounts">
-                <span data-feather="dollar-sign"></span>
-                Accounts
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#" data-goto="credit">
-                <span data-feather="credit-card"></span>
-                Credit Cards
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#" data-goto="investments">
-                <span data-feather="trending-up"></span>
-                Investments
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#" data-goto="banks">
-                <span data-feather="bar-chart-2"></span>
-                Banks
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#" data-goto="crypto">
-                <span data-feather="trending-down"></span>
-                Cryptocurrency
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#" data-goto="transactions">
-                <span data-feather="activity"></span>
-                Transactions
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#" data-goto="chart">
-                <i class="fa fa-pie-chart"></i>
-                Transaction Breakdown
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#" data-goto="calendar">
-                <span data-feather="calendar"></span>
-                Calendar
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#" data-goto="groups">
-                <span data-feather="grid"></span>
-                Groups
-              </a>
-            </li>
-          </ul>
-          <div class="d-flex justify-content-between align-items-end px-3 mt-4 mb-1">
-            <button id="createGroupButton" class="btn btn-primary">Create Group</button>
-          </div>
-          <div class="d-flex justify-content-between align-items-end px-3 mt-4 mb-1">
-            <button class="btn btn-secondary" id="databaseExport">Export database</button>
-          </div>
-          <div class="d-flex justify-content-between align-items-end px-3 mt-4 mb-1">
-            <button class="btn btn-secondary" id="databaseImport">Import database</button>            
-            <input type="file" accept=".json" id="importDatabase" aria-describedby="fileHelp">
-        </div>
-      </nav>
-
-      <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-          <h1 class="h2" id="title">Overview</h1>
-          <div class="mb-2 mb-md-0">
-            <span id="contextBalance"></span>
-          </div>
-        </div>
-      </main>
-
-      <div id="app" class="col-md-9 ml-sm-auto col-lg-10 px-4">
-        <div id="overview"></div>
-        <div id="accounts" class="d-none"></div>
-        <div id="credit" class="d-none"></div>
-        <div id="investments" class="d-none"></div>
-        <div id="banks" class="d-none"></div>
-        <div id="crypto" class="d-none"></div>
-        <div id="transactions" class="d-none"></div>
-        <div id="groups" class="d-none"></div>
-        <div id="calendar" class="d-none">
-          <div id="transactionsByDate"></div>
-          <div id="calendarContainer"></div>
-        </div>
-        <div id="chart" class="d-none">
-          <div>
-            <div class="d-flex justify-content-center mb-1">
-              <div class="btn-group" role="group" id="chartTransactionButtonBar">
-                <button id="chartTransactionThisWeek" type="button" class="btn btn-primary">This week</button>
-                <button id="chartTransactionThisMonth" type="button" class="btn btn-secondary">This month</button>
-                <button id="chartTransactionLastMonth" type="button" class="btn btn-secondary">Last month</button>
-                <button id="chartTransactionThisYear" type="button" class="btn btn-secondary">This year</button>
-              </div>
+    <div class="container-fluid">
+      <div class="row">
+        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+          <div-- class="sidebar-sticky">
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link active" href="#" data-goto="overview">
+                  <span data-feather="home"></span>
+                  Overview <span class="sr-only">(current)</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" data-goto="accounts">
+                  <span data-feather="dollar-sign"></span>
+                  Accounts
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" data-goto="credit">
+                  <span data-feather="credit-card"></span>
+                  Credit Cards
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" data-goto="investments">
+                  <span data-feather="trending-up"></span>
+                  Investments
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" data-goto="banks">
+                  <span data-feather="bar-chart-2"></span>
+                  Banks
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" data-goto="crypto">
+                  <span data-feather="trending-down"></span>
+                  Cryptocurrency
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" data-goto="transactions">
+                  <span data-feather="activity"></span>
+                  Transactions
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" data-goto="chart">
+                  <i class="fa fa-pie-chart"></i>
+                  Transaction Breakdown
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" data-goto="calendar">
+                  <span data-feather="calendar"></span>
+                  Calendar
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" data-goto="groups">
+                  <span data-feather="grid"></span>
+                  Groups
+                </a>
+              </li>
+            </ul>
+            <div class="d-flex justify-content-between align-items-end px-3 mt-4 mb-1">
+              <button id="createGroupButton" class="btn btn-primary">Create Group</button>
             </div>
-            <div class="row">
-              <div class="col-md-6 col-lg-6">
-              <div id="chartContainer">
-                <canvas id="chartCanvas" width="700" height="700"></canvas>
+            <div class="d-flex justify-content-between align-items-end px-3 mt-4 mb-1">
+              <button class="btn btn-secondary" id="databaseExport">Export database</button>
+            </div>
+            <div class="d-flex justify-content-between align-items-end px-3 mt-4 mb-1">
+              <button class="btn btn-secondary" id="databaseImport">Import database</button>            
+              <input type="file" accept=".json" id="importDatabase" aria-describedby="fileHelp">
+          </div>
+        </nav>
+
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2" id="title">Overview</h1>
+            <div class="mb-2 mb-md-0">
+              <span id="contextBalance"></span>
+            </div>
+          </div>
+        </main>
+
+        <div id="app" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+          <div id="overview"></div>
+          <div id="accounts" class="d-none"></div>
+          <div id="credit" class="d-none"></div>
+          <div id="investments" class="d-none"></div>
+          <div id="banks" class="d-none"></div>
+          <div id="crypto" class="d-none"></div>
+          <div id="transactions" class="d-none"></div>
+          <div id="groups" class="d-none"></div>
+          <div id="calendar" class="d-none">
+            <div id="transactionsByDate"></div>
+            <div id="calendarContainer"></div>
+          </div>
+          <div id="chart" class="d-none">
+            <div>
+              <div class="d-flex justify-content-center mb-1">
+                <div class="btn-group" role="group" id="chartTransactionButtonBar">
+                  <button id="chartTransactionThisWeek" type="button" class="btn btn-primary">This week</button>
+                  <button id="chartTransactionThisMonth" type="button" class="btn btn-secondary">This month</button>
+                  <button id="chartTransactionLastMonth" type="button" class="btn btn-secondary">Last month</button>
+                  <button id="chartTransactionThisYear" type="button" class="btn btn-secondary">This year</button>
+                </div>
               </div>
-              </div>
-              <div class="col-md-6 col-lg-6">
-                <div id="chartTransactions">
-                  <div class="d-flex justify-content-center align-items-center mt-2">
-                    <span class="alert alert-info"><i class="fa fa-info"></i> Click a category to view transaction data.</span>
+              <div class="row">
+                <div class="col-md-6 col-lg-6">
+                <div id="chartContainer">
+                  <canvas id="chartCanvas" width="700" height="700"></canvas>
+                </div>
+                </div>
+                <div class="col-md-6 col-lg-6">
+                  <div id="chartTransactions">
+                    <div class="d-flex justify-content-center align-items-center mt-2">
+                      <span class="alert alert-info"><i class="fa fa-info"></i> Click a category to view transaction data.</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <div id="loading" class="d-none row h-100 justify-content-center align-items-center">
-          <span class="fa fa-refresh fa-spin fa-5x"></span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="addCryptoModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Add holding</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <form>
-            <div class="form-group">
-              <label for="addCryptoField">Crypto </label>
-              <input type="text" class="form-control typeahead" id="addCryptoField" placeholder="Enter symbol">
-            </div>
-            <div class="form-group">
-              <label for="addHoldingField">Holdings </label>
-              <input type="number" class="form-control" id="addHoldingField" placeholder="Enter holdings">
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <button type="button" id="cryptoSubmit" class="btn btn-success" data-dismiss="modal" disabled="disabled">Add holding</button>          
+          <div id="loading" class="d-none row h-100 justify-content-center align-items-center">
+            <span class="fa fa-refresh fa-spin fa-5x"></span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="modal fade" id="createGroupModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Create group</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <form>
-            <div class="form-group">
-              <label for="createGroupField">Name </label>
-              <input type="text" class="form-control" id="createGroupField" placeholder="Group name" value="Default Group">
-            </div>
-          </form>
-          <table id="createGroupTable" class="table table-striped">
-            <tbody id="createGroupTableBody"></tbody>
-          </table>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <button type="button" id="createGroupSubmit" class="btn btn-success" data-dismiss="modal">Create group</button>          
+    <div class="modal fade" id="addCryptoModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add holding</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="form-group">
+                <label for="addCryptoField">Crypto </label>
+                <input type="text" class="form-control typeahead" id="addCryptoField" placeholder="Enter symbol">
+              </div>
+              <div class="form-group">
+                <label for="addHoldingField">Holdings </label>
+                <input type="number" class="form-control" id="addHoldingField" placeholder="Enter holdings">
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" id="cryptoSubmit" class="btn btn-success" data-dismiss="modal" disabled="disabled">Add holding</button>          
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="modal fade" id="messageModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Marshmallowsocks Finance</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div id="modalMessage"></div>
+    <div class="modal fade" id="createGroupModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Create group</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="form-group">
+                <label for="createGroupField">Name </label>
+                <input type="text" class="form-control" id="createGroupField" placeholder="Group name" value="Default Group">
+              </div>
+            </form>
+            <table id="createGroupTable" class="table table-striped">
+              <tbody id="createGroupTableBody"></tbody>
+            </table>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" id="createGroupSubmit" class="btn btn-success" data-dismiss="modal">Create group</button>          
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div id="loader-wrapper">
-    <h1 class="display-1 text-secondary splash-header">Marshmallowsocks Finance</h1>
-    <div id="loader"></div>
-    <div class="loader-section section-left"></div>
-    <div class="loader-section section-right"></div>
+    <div class="modal fade" id="messageModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Marshmallowsocks Finance</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div id="modalMessage"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="loader-wrapper">
+      <h1 class="display-1 text-secondary splash-header">Marshmallowsocks Finance</h1>
+      <div id="loader"></div>
+      <div class="loader-section section-left"></div>
+      <div class="loader-section section-right"></div>
+    </div>
   </div>
 
   <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>

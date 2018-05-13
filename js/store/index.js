@@ -1,5 +1,19 @@
-let Store = function() {
-  this.cleanBalance = (balances) => {
+class Store {
+  constructor() {
+    this.accounts = {};
+    this.allCrypto = {};
+    this.allAccounts = [];
+    this.transactions = [];
+    this.allTransactions = [];
+    this.groups = [];
+    this.netBalance = 0;
+    this.cashBalance = 0;
+    this.creditDebt = 0;
+    this.cryptoBalance = 0;
+    this.investmentBalance = 0;
+  }
+
+  cleanBalance(balances) {
     if(balances.limit !== null) {
       // is a credit card / line of credit
       return balances.current !== null ? balances.current : (balances.available !== null ? balances.limit - balances.available : -Infinity)
@@ -7,19 +21,19 @@ let Store = function() {
     return balances.available !== null ? balances.available : (balances.current !== null ? balances.current : -Infinity);
   }
 
-  this.addAccountCollection = (accounts) => {
+  addAccountCollection(accounts) {
     accounts.forEach(account => {
       this.addAccount(account);
     });
   }
 
-  this.addGroupCollection = (groups) => {
+  addGroupCollection (groups) {
     groups.forEach(group => {
       this.addGroup(group);
     });
   }
 
-  this.addGroup = (group) => {
+  addGroup (group) {
     const groupData = {
       id: group.id,
       name: group.name,
@@ -35,7 +49,7 @@ let Store = function() {
     this.groups.push(groupData);
   }
 
-  this.deleteGroup = (groupId) => {
+  deleteGroup (groupId) {
     let index;
 
     for(let i = 0; i < this.groups.length; i++) {
@@ -48,11 +62,11 @@ let Store = function() {
     this.groups = this.groups.splice(index, 1);
   }
 
-  this.addAllCrypto = (crypto) => {
+  addAllCrypto (crypto) {
     this.allCrypto = crypto;
   }
 
-  this.addAllTransactions = (transactions) => {
+  addAllTransactions (transactions) {
     transactions.forEach(transactionObject => {
       transactionObject.transactions.forEach(transaction => {
         if(transaction.category && transaction.category.length) {
@@ -65,11 +79,11 @@ let Store = function() {
     this.transactions = transactions;
   }
 
-  this.getTransactionsForDate = (date) => {
+  getTransactionsForDate (date) {
     return this.allTransactions.filter(transaction => transaction.date === date);
   }
 
-  this.getTransactionsSummaryForDate = (date) => {
+  getTransactionsSummaryForDate (date) {
     const transactionForDate = {
       debit: 0,
       credit: 0
@@ -89,9 +103,11 @@ let Store = function() {
     return transactionForDate;
   }
 
-  this.getCryptoInformation = symbol => this.allCrypto.filter(c => c.symbol === symbol)[0];
-
-  this.addAccount = (account) => {
+  getCryptoInformation(symbol) {
+    return this.allCrypto.filter(c => c.symbol === symbol)[0];
+  }
+  
+  addAccount (account) {
     Object.keys(account).forEach(type => {
       if(!this.accounts[type]) {
         this.accounts[type] = [];
@@ -102,7 +118,7 @@ let Store = function() {
     this.recalculateBalance(account);
   }
 
-  this.calculateBalance = (accounts) => {
+  calculateBalance (accounts) {
     // updates the balance.
 
     Object.keys(accounts).forEach(type => {
@@ -130,7 +146,7 @@ let Store = function() {
     this.netBalance = this.cashBalance + this.investmentBalance + this.cryptoBalance - this.creditDebt;
   } 
 
-  this.recalculateBalance = () => {
+  recalculateBalance () {
     this.investmentBalance = 0;
     this.creditDebt = 0;
     this.cashBalance = 0;
@@ -138,18 +154,6 @@ let Store = function() {
 
     this.calculateBalance(this.accounts);
   }
-  
-  this.accounts = {};
-  this.allCrypto = {};
-  this.allAccounts = [];
-  this.transactions = [];
-  this.allTransactions = [];
-  this.groups = [];
-  this.netBalance = 0;
-  this.cashBalance = 0;
-  this.creditDebt = 0;
-  this.cryptoBalance = 0;
-  this.investmentBalance = 0;
 };
 
 module.exports = Store;

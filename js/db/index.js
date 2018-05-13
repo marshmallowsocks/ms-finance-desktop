@@ -16,6 +16,36 @@ const dbApi = {
       crypto: '++id, crypto_id, name, symbol, holdings',
       groups: '++id, name, accounts',
     });
+    db.version(3).stores({
+      access_tokens: '++id, access_token, item_token',
+      institutions: '++id, name, institution_id, item_token, products',
+      crypto: '++id, crypto_id, name, symbol, holdings',
+      groups: '++id, name, accounts',
+      plaid: '++id, client_id, public_key, secret',
+    });
+  },
+  getPlaidCredentials: async () => {
+    const plaid = await db.plaid.toArray();
+    if(!plaid || plaid.length === 0) {
+      return {
+        error: true,
+        message: 'No plaid credentials found.'
+      };
+    }
+
+    return plaid[0];
+  },
+  savePlaidCredentials: async ({public_key, client_id, secret}) => {
+    await db.plaid.add({
+      public_key,
+      client_id,
+      secret
+    });
+
+    return {
+      error: false,
+      message: 'Saved plaid credentials'
+    };
   },
   exportDatabase: async () => {
     return new Promise((resolve, reject) => {

@@ -1,21 +1,43 @@
 const plaid = require('plaid');
 const moment = require('moment');
-const constants = require('../util/constants');
-const db = require('../util/db');
-const helpers = require('../util/helpers');
 const fs = require('fs');
+
+const constants = require('../constants');
+const db = require('../db');
+const helpers = require('../util/helpers');
 
 let client;
 
 const api = {
-  init: () => {
+  init: async () => {
+    db.init();
+    const plaidCredentials = await db.getPlaidCredentials();
+    if(plaidCredentials.error) {
+      return plaidCredentials;
+    }
     client = new plaid.Client(
-      constants.plaid.PLAID_CLIENT_ID,
-      constants.plaid.PLAID_SECRET,
-      constants.plaid.PLAID_PUBLIC_KEY,
+      plaidCredentials.client_id,
+      plaidCredentials.secret,
+      plaidCredentials.public_key,
       plaid.environments[constants.plaid.PLAID_ENV],
     );
-    db.init();
+    return {
+      error: false,
+      message: 'API initialized',
+      plaidCredentials,
+    };
+  },
+  savePlaidCredentials: async ({publicKey, clientId, secret}) => {
+    await db.savePlaidCredentials({
+      public_key: publicKey,
+      client_id: clientId,
+      secret
+    });
+
+    return {
+      error: false,
+      message: 'Saved Plaid credentials.'
+    };
   },
   exportDatabase: () => {
     return new Promise((resolve, reject) => {
@@ -168,7 +190,10 @@ const api = {
               accountsResponse.accounts.forEach((account) => {
                 account.institutionName = institution.name; // eslint-disable-line
               });
-              resolve(helpers.groupBy(accountsResponse.accounts, 'type'));
+              resolve({
+                type: 'accounts',
+                data: helpers.groupBy(accountsResponse.accounts, 'type')
+              });
             })
             .catch((error) => {
               reject(error);
@@ -187,7 +212,10 @@ const api = {
             if(err != null) {
               reject(Error(JSON.stringify(err)));
             }
-            resolve(transactionsResponse);
+            resolve({
+              type: 'transactions',
+              data: transactionsResponse
+            });
           });
       });
   }),

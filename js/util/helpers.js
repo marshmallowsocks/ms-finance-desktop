@@ -1,4 +1,4 @@
-const helpers = {
+module.exports = {
   groupBy: (xs, key) => xs.reduce((rv, x) => {
     (rv[x[key]] = rv[x[key]] || []).push(x); // eslint-disable-line
     return rv;
@@ -15,5 +15,3 @@ const helpers = {
         typeof i === 'number' ?
             i : 0,
 };
-
-module.exports = helpers;

@@ -40,7 +40,7 @@ function createWindow () {
     window.setMenu(null);
   });
 
-  mainWindow.setMenu(null);
+  //mainWindow.setMenu(null);
 }
 
 // This method will be called when Electron has finished

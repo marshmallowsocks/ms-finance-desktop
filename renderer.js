@@ -2,18 +2,18 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
-const { getCurrentWindow, globalShortcut } = require('electron').remote;
+const { getCurrentWindow, globalShortcut, app } = require('electron').remote;
 const Chart  = require('chart.js');
 
-const constants = require('./js/util/constants');
-const api = require('./js/api/plaid-api');
+const constants = require('./js/constants');
+const api = require('./js/api');
 const helpers = require('./js/util/helpers');
 
-const StoreCreator = require('./js/util/Store');
-const DrawerCreator = require('./js/util/drawers');
+const StoreCreator = require('./js/store');
+const MarkupGenerator = require('./js/markup');
 
 const Store = new StoreCreator();
-const drawer = new DrawerCreator();
+const markup = new MarkupGenerator();
 
 const pages = {
   overview: 'Overview',
@@ -41,7 +41,6 @@ const titles = {
   'Transaction Breakdown': 'chart',
 };
 
-let transactionBreakdown;
 let colors = [
   'rgba(255,99,132,1)',
   'rgba(54, 162, 235, 1)',
@@ -58,9 +57,10 @@ const activeDateRanges = {
   thisYear: false,
 };
 
-api.init();
+let transactionBreakdown;
+let handler;
 
-const pageInit = () => {
+const pageInit = async () => {
   // remove splash screen and show main screen.
   $('.splash-header').addClass('animated fadeOut');
   $('body').addClass('loaded');
@@ -68,128 +68,165 @@ const pageInit = () => {
   showLoader();
   $('#messageModal').modal({ show: false });
   
-  const initialFetchData = () => {
-    return new Promise((resolve, reject) => {
-      api.getAllInstitutionData()
-        .then(institutions => {
-          if(!institutions.length) {
-            api.fetchCrypto()
-                 .then(crypto => {
-                    setupCryptoSuggestions(crypto);
-                    api.getCryptoHoldings().then(cryptoAccounts => {
-                      if(cryptoAccounts.length === 0) {
-                        resolve({
-                          error: false,
-                          accountDataExists: false
-                        });
-                      }
-                      const cryptoAccountData = cryptoAccounts.map(cryptoAccount => {
-                        const data = crypto[cryptoAccount.crypto_id];
-                        data.holdings = cryptoAccount.holdings;
-                        return createAccountObject(data);
-                      });
-                      Store.addAccountCollection(cryptoAccountData);
-                      resolve({
-                        error: false,
-                        accountDataExists: true
-                      });
-                    });
-                  });
-          }
-          const accountPromises = [];
-          const transactionPromises = [];
-          institutions.forEach(institution => {
-            accountPromises.push(api.fetchAccountData(institution.item_token));
-            transactionPromises.push(api.fetchTransactionData(institution.item_token));
-          });
-          Promise.all(accountPromises)
-            .then(result => {
-              api.fetchCrypto()
-                 .then(crypto => {
-                    setupCryptoSuggestions(crypto);
-                    api.getCryptoHoldings().then(cryptoAccounts => {
-                      const cryptoAccountData = cryptoAccounts.map(cryptoAccount => {
-                        const data = crypto[cryptoAccount.crypto_id];
-                        data.holdings = cryptoAccount.holdings;
-                        return createAccountObject(data);
-                      });
-                      api.getGroups().then(groups => {
-                        Store.addAccountCollection([...result, ...cryptoAccountData]);
-                        Store.addGroupCollection(groups);
-                        resolve({
-                          error: false,
-                          accountDataExists: true
-                        });
-                      });
-                    });
-                 })
-                 .catch(err => {
-                    reject({
-                      error: true,
-                      errorType: 'CRYPTO'
-                    });
-                 });
-            })
-            .catch(err => {
-              reject({
-                error: true,
-                errorType: 'ACCOUNT'
-              });
-            });
-          
-          Promise.all(transactionPromises)
-                 .then(result => {
-                   Store.addAllTransactions(result);
-                   drawTransactions();
-                   drawCalendarTransactions();
-                   drawTransactionBreakdown('thisWeek');
-                   attachChartHandlers();
-                 });
-        })
-        .catch(err => {
-          reject({
-            error: true,
-            errorType: 'INSTITUTION'
-          });
+  const initialFetchData = async () => {
+    try {
+      const institutions = await api.getAllInstitutionData();
+      
+      if(!institutions.length) {
+        const crypto = await api.fetchCrypto();
+        const cryptoAccounts = await api.getCryptoHoldings();
+        setupCryptoSuggestions(crypto);
+        if(cryptoAccounts.length === 0) {
+          return {
+            error: false,
+            accountDataExists: false
+          };
+        }
+        const cryptoAccountData = cryptoAccounts.map(cryptoAccount => {
+          const data = crypto[cryptoAccount.crypto_id];
+          data.holdings = cryptoAccount.holdings;
+          return createAccountObject(data);
         });
-    });
+        Store.addAccountCollection(cryptoAccountData);
+        
+        return {
+          error: false,
+          accountDataExists: true
+        };
+      }
+
+      const accountPromises = [];
+      const transactionPromises = [];
+      
+      institutions.forEach(institution => {
+        accountPromises.push(api.fetchAccountData(institution.item_token));
+        transactionPromises.push(api.fetchTransactionData(institution.item_token));
+      });
+      
+      const result = await Promise.all([...accountPromises, ...transactionPromises]);
+      const crypto = await api.fetchCrypto();
+      const cryptoAccounts = await api.getCryptoHoldings();
+      const groups = await api.getGroups();
+
+      setupCryptoSuggestions(crypto);
+      const cryptoAccountData = cryptoAccounts.map(cryptoAccount => {
+        const data = crypto[cryptoAccount.crypto_id];
+        data.holdings = cryptoAccount.holdings;
+        return createAccountObject(data);
+      });
+
+      Store.addAccountCollection([
+        ...result.filter(r => r.type === 'accounts').map(r => r.data),
+        ...cryptoAccountData
+      ]);
+      Store.addGroupCollection(groups);
+      Store.addAllTransactions([
+        ...result.filter(r => r.type === 'transactions').map(r => r.data)
+      ]);
+
+      return {
+        error: false,
+        accountDataExists: true
+      };
+    }
+    catch(e) {
+      throw Error(e);
+    }
   };
 
-  initialFetchData()
-    .then(readyState => {
-      if(readyState.accountDataExists) {
-        drawAll();
-      }
-      else {
-        drawNone();
-      }
-    })
-    .catch(errorState => {
-      drawError();
-    });
-};
+  try {
+    const apiReadyState = await api.init();
+    if(apiReadyState.error) {
+      let helpMessage = `
+        <h3>Could not find Plaid credentials</h3>
+        <p>
+        You need to enter valid Plaid credentials for this application to work.
+        Get your free credentials <a href="https://dashboard.plaid.com/signup" target="_blank">here.</a>
+        </p>
+      `;
+      let plaidForm = `
+      <form>
+        <div class="form-group">
+          <label for="plaidClientId">Client ID</label>
+          <input type="text" class="form-control" id="plaidClientId" placeholder="Plaid Client ID">
+          <small id="clientIDHelp" class="form-text text-muted">Enter your Plaid Client ID.</small>
+        </div>
+        <div class="form-group">
+          <label for="plaidPublicKey">Public Key</label>
+          <input type="text" class="form-control" id="plaidPublicKey" placeholder="Plaid Public Key">
+          <small id="publicKeyHelp" class="form-text text-muted">Enter your Plaid Public Key.</small>
+        </div>
+        <div class="form-group">
+          <label for="plaidSecretKey">Secret</label>
+          <input type="password" class="form-control" id="plaidSecretKey" placeholder="Plaid Secret">
+          <small id="secretKeyHelp" class="form-text text-muted">Enter your Plaid Secret.</small>
+        </div>
+      </form>
+      <p>The application will restart on saving credentials.</p>
+      <button type="button" class="btn btn-success" id="plaidDBFormSubmit">Save keys</button>
+      `;
+      hideLoader();
+      $('#modalMessage').html(`${helpMessage}${plaidForm}`);
+      $('#messageModal').modal('show');
+      $('#plaidDBFormSubmit').on('click', e => {
+        clientId = $('#plaidClientId').val();
+        publicKey = $('#plaidPublicKey').val();
+        secret = $('#plaidSecretKey').val();
 
-const handler = Plaid.create({
-  apiVersion: 'v2',
-  clientName: 'Marshmallowsocks Finance',
-  env: constants.plaid.PLAID_ENV,
-  product: ['transactions'],
-  key: constants.plaid.PLAID_PUBLIC_KEY,
-  onSuccess: async function(public_token) {
-    const result = await api.exchangePublicToken(public_token);
-    if(!result.error) {
-      const { name, itemId, products } = await api.fetchLatestInstitutionData();
-      const accountData = await api.fetchAccountData(itemId);
-      Store.addAccount(accountData);
+        api.savePlaidCredentials({
+          clientId,
+          publicKey,
+          secret
+        }).then(res => {
+          app.relaunch();
+          app.exit(0);
+        });
+      });
+    }
+    else {
+      handler = Plaid.create({
+        apiVersion: 'v2',
+        clientName: 'Marshmallowsocks Finance',
+        env: constants.plaid.PLAID_ENV,
+        product: ['transactions'],
+        key: apiReadyState.plaidCredentials.public_key,
+        onSuccess: async function(public_token) {
+          const result = await api.exchangePublicToken(public_token);
+          if(!result.error) {
+            const { name, itemId, products } = await api.fetchLatestInstitutionData();
+            const accountData = await api.fetchAccountData(itemId);
+            Store.addAccount(accountData.data);
+            drawAll();
+          }
+        },
+        onExit: function(err, metadata) {
+          console.log('Plaid Link exit!');
+          console.log(err);
+          hideLoader();
+        }
+      });
+    }
+  }
+  catch(e) {
+    drawError();
+    return {
+      error: true,
+      message: 'Page initialization failed.',
+    };
+  }
+  try {
+    const readyState = await initialFetchData();
+    if(readyState.accountDataExists) {
       drawAll();
     }
-  },
-  onExit: function(err, metadata) {
-    console.log('Plaid Link exit!');
-    console.log(err);
-    hideLoader();
+    else {
+      drawNone();
+    }
   }
-});
+  catch(e) {
+    drawError();
+  }
+};
 
 $('#link-btn').on('click', e => {
   showLoader();
@@ -242,9 +279,9 @@ $('#importDatabase').on('change', e => {
 
 $('#createGroupButton').on('click', e => {
   $('#createGroupModal').modal({ show: false });
-  let markup = '';
+  let tableMarkup = '';
   Store.allAccounts.forEach(account => {
-    markup += `<tr>
+    tableMarkup += `<tr>
                 <td>${account.name}</td>
                 <td>${account.institutionName}</td>
                 <td>
@@ -254,7 +291,7 @@ $('#createGroupButton').on('click', e => {
                 </td>
                </tr>`
   });
-  $('#createGroupTableBody').html(markup);
+  $('#createGroupTableBody').html(tableMarkup);
   $('#createGroupModal').modal('show');
 
 });
@@ -360,13 +397,17 @@ const hideLoader = () => {
 }
 
 const drawAll = () => {
-  $('#overview').html(drawer.drawOverview(Store));
-  $('#accounts').html(drawer.drawAccountCards(Store));
-  $('#credit').html(drawer.drawCreditCards(Store));
-  $('#investments').html(drawer.drawInvestmentCards(Store));
-  $('#banks').html(drawer.drawBankCards(Store));
-  $('#crypto').html(drawer.drawCryptoCards(Store));
-  $('#groups').html(drawer.drawGroups(Store));
+  $('#overview').html(markup.drawOverview(Store));
+  $('#accounts').html(markup.drawAccountCards(Store));
+  $('#credit').html(markup.drawCreditCards(Store));
+  $('#investments').html(markup.drawInvestmentCards(Store));
+  $('#banks').html(markup.drawBankCards(Store));
+  $('#crypto').html(markup.drawCryptoCards(Store));
+  $('#groups').html(markup.drawGroups(Store));
+  drawTransactions();
+  drawCalendarTransactions();
+  drawTransactionBreakdown('thisWeek');
+  attachChartHandlers();
   attachGroupHandlers();
   drawNetBalance(Store.netBalance);
   drawContextBalance(Store.netBalance);
@@ -414,14 +455,14 @@ const attachChartHandlers = () => {
 }
 
 const drawTransactions = () => {
-  $('#transactions').html(drawer.drawTransactions(Store));
+  $('#transactions').html(markup.drawTransactions(Store));
   initializeDataTable('transactionsTable', 'transactions');
   feather.replace();
 }
 
 const drawNone = () => {
   Object.keys(pages).forEach(page => {
-    $(`#${page}`).html(drawer.drawNoneCard());
+    $(`#${page}`).html(markup.drawNoneCard());
   });
 
   drawNetBalance('-');
@@ -431,9 +472,9 @@ const drawNone = () => {
 const drawError = () => {
   //TODO: finish this function
   // $('#overview').html();
-  // $('#accounts').html(drawer.drawAccountCards(Store));
-  // $('#credit').html(drawer.drawCreditCards(Store));
-  // $('#investments').html(drawer.drawInvestmentCards(Store));
+  // $('#accounts').html(markup.drawAccountCards(Store));
+  // $('#credit').html(markup.drawCreditCards(Store));
+  // $('#investments').html(markup.drawInvestmentCards(Store));
 
   // $('#netBalance').html(Store.netBalance);
   hideLoader();
@@ -443,14 +484,14 @@ const drawNetBalance = (balance) => {
   //also replace all feather icons.
   feather.replace();
 
-  const netBalanceMarkup = drawer.drawNetBalance(balance);
+  const netBalanceMarkup = markup.drawNetBalance(balance);
   $('#netBalance').addClass(netBalanceMarkup.classStyle);
   $('#netBalance').html(netBalanceMarkup.balance);
 }
 
 const drawContextBalance = (balance) => {
   $('#contextBalance').removeClass();
-  const contextBalanceMarkup = drawer.drawNetBalance(balance);
+  const contextBalanceMarkup = markup.drawNetBalance(balance);
   $('#contextBalance').addClass(contextBalanceMarkup.classStyle);
   $('#contextBalance').html(contextBalanceMarkup.balance);
 }
@@ -463,12 +504,12 @@ const drawCalendarTransactions = () => {
         return;
       }
       const transactionData = Store.getTransactionsSummaryForDate(date.format());
-      $(cell).html(drawer.drawTransactionForDate(transactionData));
+      $(cell).html(markup.drawTransactionForDate(transactionData));
     },
     dayClick: (date, jsEvent, view) => {
       const transactionData = Store.getTransactionsForDate(date.format());
       $('#transactionsByDate').html(
-        `<h3>Charges on ${date.format('MMMM Do YYYY')}</h3>${drawer.drawTransactionsByCategory(transactionData)}`
+        `<h3>Charges on ${date.format('MMMM Do YYYY')}</h3>${markup.drawTransactionsByCategory(transactionData)}`
       );
     }
   });
@@ -501,7 +542,7 @@ const drawTransactionBreakdown = (dateRange) => {
       const key = data[0]._model.label === 'Uncategorized' ? 'undefined' : data[0]._model.label;
       
       $('#chartTransactions').html(
-        drawer.drawTransactionsByCategory(
+        markup.drawTransactionsByCategory(
           groupedTransactions[key].filter(transaction => {
             return isInDateRange(transaction.date, dateRange)  
           })
@@ -643,4 +684,3 @@ const setupCryptoSuggestions = (crypto) => {
 
 // starting point
 pageInit();
-
