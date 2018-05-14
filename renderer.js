@@ -137,36 +137,8 @@ const pageInit = async () => {
   try {
     const apiReadyState = await api.init();
     if(apiReadyState.error) {
-      let helpMessage = `
-        <h3>Could not find Plaid credentials</h3>
-        <p>
-        You need to enter valid Plaid credentials for this application to work.
-        Get your free credentials <a href="https://dashboard.plaid.com/signup" target="_blank">here.</a>
-        </p>
-      `;
-      let plaidForm = `
-      <form>
-        <div class="form-group">
-          <label for="plaidClientId">Client ID</label>
-          <input type="text" class="form-control" id="plaidClientId" placeholder="Plaid Client ID">
-          <small id="clientIDHelp" class="form-text text-muted">Enter your Plaid Client ID.</small>
-        </div>
-        <div class="form-group">
-          <label for="plaidPublicKey">Public Key</label>
-          <input type="text" class="form-control" id="plaidPublicKey" placeholder="Plaid Public Key">
-          <small id="publicKeyHelp" class="form-text text-muted">Enter your Plaid Public Key.</small>
-        </div>
-        <div class="form-group">
-          <label for="plaidSecretKey">Secret</label>
-          <input type="password" class="form-control" id="plaidSecretKey" placeholder="Plaid Secret">
-          <small id="secretKeyHelp" class="form-text text-muted">Enter your Plaid Secret.</small>
-        </div>
-      </form>
-      <p>The application will restart on saving credentials.</p>
-      <button type="button" class="btn btn-success" id="plaidDBFormSubmit">Save keys</button>
-      `;
       hideLoader();
-      $('#modalMessage').html(`${helpMessage}${plaidForm}`);
+      $('#modalMessage').html(`${markup.drawPlaidForm()}`);
       $('#messageModal').modal('show');
       $('#plaidDBFormSubmit').on('click', e => {
         clientId = $('#plaidClientId').val();
@@ -326,7 +298,7 @@ $('#cryptoSubmit').on('click', e => {
     if(!res.exists) {
       Store.addAccount(createAccountObject(crypto, holdings));
     }
-    drawAll();
+    triggerRefresh({ type: 'crypto' });
   });
 });
 
@@ -369,7 +341,7 @@ const createAccountObject = (crypto, holdings) => {
   const storeObject = {};
   storeObject.crypto = [];
   storeObject.crypto.push({
-    account_id: '-',
+    account_id: crypto.id,
     balances: {
       available: (crypto.holdings || holdings) * crypto.quotes.USD.price,
       current: null,
@@ -510,8 +482,9 @@ const drawCalendarTransactions = () => {
     dayClick: (date, jsEvent, view) => {
       const transactionData = Store.getTransactionsForDate(date.format());
       $('#transactionsByDate').html(
-        `<h3>Charges on ${date.format('MMMM Do YYYY')}</h3>${markup.drawTransactionsByCategory(transactionData)}`
+        `<h3>Charges on ${date.format('MMMM Do YYYY')}</h3>${markup.drawTransactionsByCategory(transactionData, 'Calendar')}`
       );
+      initializeDataTable('transactionsCategoryTableCalendar', '');
     }
   });
 }
@@ -533,17 +506,37 @@ const drawBudgetForYear = () => {
   const ctx = document.getElementById('budgetCanvas').getContext('2d');  
   const transactions = [];
   const week = Store.getTransactionsSummaryForWeek(moment().get('week'));
+  const performance = {
+    lastMonth: [],
+    thisMonth: []
+  };
 
   for(let i = 0; i <= moment().get('month'); i++) {
     transactions.push(Store.getTransactionsSummaryForMonth(moment().set('month', i)));
   }
   
   const total = transactions.reduce((runningSum, transaction) => {
-    return runningSum + transaction.debit; 
+    return runningSum + transaction.debit - transaction.credit; 
   }, 0);
 
   const sum = total/moment().get('month');
 
+  for(let i = 1; i <= moment().subtract(1, 'month').startOf('month').daysInMonth(); i++) {
+    performance.lastMonth.push(
+      Store.getTransactionsSummaryForDate(
+        moment([moment().year(), moment().subtract(1, 'month').month(), i]).format('YYYY-MM-DD')
+      )
+    );
+  }
+
+  for(let i = 1; i <= moment().startOf('month').daysInMonth(); i++) {
+    performance.thisMonth.push(
+      Store.getTransactionsSummaryForDate(
+        moment([moment().year(), moment().month(), i]).format('YYYY-MM-DD')
+      )
+    );
+  }
+  
   $('#budgetForMonth').html(`$${helpers.round(sum, 2)}`);
   $('#thisWeekOverview').html(`$${helpers.round(week.debit, 2)}`);
   const budgetChart = new Chart(ctx, {
@@ -552,12 +545,19 @@ const drawBudgetForYear = () => {
       labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
       datasets: [{
         label: 'Gross Expenses',
-        data: transactions.map(t => t.debit),
+        data: transactions.map(t => t.debit - t.credit),
         borderColor: 'rgba(255,99,132,1)',
       }]
+    },
+    options: {
+      legend: { display: false },
+      title: {
+        display: true,
+        text: 'Gross expenses per month'
+      }
     }
   });
-  
+
   new Chart(document.getElementById("yearSpendCanvas"), {
     type: 'bar',
     data: {
@@ -583,6 +583,48 @@ const drawBudgetForYear = () => {
       }
     }
   });
+  const performanceLabels = [];
+  const performanceThisMonth = [];
+  const performanceLastMonth = [];
+  performanceThisMonth.push(performance.thisMonth[0].debit - performance.thisMonth[0].credit);
+  performanceLastMonth.push(performance.lastMonth[0].debit - performance.lastMonth[0].credit);
+  
+  for(let i = 1; i <= 31; i++) {
+    performanceLabels.push(i.toString())
+  }
+  for(let i = 1; i < performance.thisMonth.length; i++) {
+    performanceThisMonth.push(
+      performance.thisMonth[i].debit - performance.thisMonth[i].credit + performanceThisMonth[i - 1]
+    );
+  }
+  for(let i = 1; i < performance.lastMonth.length; i++) {
+    performanceLastMonth.push(
+      performance.lastMonth[i].debit - performance.lastMonth[i].credit + performanceLastMonth[i - 1]
+    );
+  }
+  new Chart(document.getElementById("monthComparisonChart"), {
+    type: 'line',
+    data: {
+      labels: performanceLabels,
+      datasets: [{
+        label: moment().format('MMMM'),
+        data: performanceThisMonth,
+        borderColor: 'rgba(255,99,132,1)',
+      },
+      {
+        label: moment().subtract(1, 'month').format('MMMM'),
+        data: performanceLastMonth,
+        borderColor: 'rgba(75, 192, 192, 1)',
+      }]
+    },
+    options: {
+      legend: { display: false },
+      title: {
+        display: true,
+        text: 'Spending Differential'
+      }
+    }
+  });
 }
 
 const drawTransactionBreakdown = (dateRange) => {
@@ -602,11 +644,12 @@ const drawTransactionBreakdown = (dateRange) => {
         markup.drawTransactionsByCategory(
           groupedTransactions[key].filter(transaction => {
             return isInDateRange(transaction.date, dateRange)  
-          })
+          }),
+          'Chart'
         )
       );
 
-      initializeDataTable('transactionsCategoryTable', 'categories');
+      initializeDataTable('transactionsCategoryTableChart', 'categories');
     }
   };
   
@@ -676,7 +719,7 @@ const initializeDataTable = (id, type) => {
           .column(columnIndex, { page: 'current'} )
           .data()
           .reduce((a, b) => {
-              if($(b).attr('class') === 'text-danger') {
+              if($(b).attr('class') !== 'text-success') {
                 return a;
               }
               let value = $(b).text().substr(1);
@@ -687,7 +730,7 @@ const initializeDataTable = (id, type) => {
           .column(columnIndex, { page: 'current'} )
           .data()
           .reduce((a, b) => {
-              if($(b).attr('class') === 'text-success') {
+              if($(b).attr('class') !== 'text-danger') {
                 return a;
               }
               let value = $(b).text().substr(1);
@@ -739,5 +782,50 @@ const setupCryptoSuggestions = (crypto) => {
   });
 }
 
+const triggerRefresh = item => {
+  switch(item.type) {
+    case 'all':
+      drawAll();
+      break;
+    case 'overview':
+      $('#overview').html(markup.drawOverview(Store));
+      drawBudgetForYear();
+      break;
+    case 'accounts':
+      $('#accounts').html(markup.drawAccountCards(Store));
+      break;
+    case 'credit':
+      $('#credit').html(markup.drawCreditCards(Store));
+      break;
+    case 'investments':
+      $('#investments').html(markup.drawInvestmentCards(Store));
+      break;
+    case 'banks':
+      $('#banks').html(markup.drawBankCards(Store));
+      break;
+    case 'crypto':
+      $('#crypto').html(markup.drawCryptoCards(Store));
+      break;
+    case 'groups':
+      $('#groups').html(markup.drawGroups(Store));
+      attachGroupHandlers();
+      break;
+    case 'transactions':
+      drawTransactions();
+      drawCalendarTransactions();
+      drawTransactionBreakdown('thisWeek');
+      attachChartHandlers();
+      break;
+  }
+  
+  drawNetBalance(Store.netBalance);
+  drawContextBalance(Store.netBalance);
+  hideLoader();
+}
+
 // starting point
 pageInit();
+
+module.exports = {
+  triggerRefresh
+};

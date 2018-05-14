@@ -116,6 +116,18 @@ class MarkupGenerator {
             </p>
           </div>
         </div>
+        <div class="card mt-3">
+          <div class="card-img-top">
+            <canvas id="monthComparisonChart" width="200" height="200"></canvas>
+          </div>
+          <div class="card-body">
+            <h5 class="card-title">Spending differential</h5>
+            <h6 class="card-subtitle mb-2 text-muted">Your performance against one month ago.</h6>
+            <p class="card-text">This compares your net spending vs the same time last month. <br>
+              Days less than zero are good! It means you received more money than you spent that day.
+            </p>
+          </div>
+        </div>
         </div>
         <div class="col-md-6 col-lg-6">
         <div class="card">
@@ -144,7 +156,39 @@ class MarkupGenerator {
       </div>
     `;
     return markup;
-    //return `${this.drawAccountCards(Store)}<hr>${this.drawCreditCards(Store)}<hr>${this.drawInvestmentCards(Store)}<hr>${this.drawCryptoCards(Store)}`;
+  }
+
+  drawPlaidForm() {
+    let helpMessage = `
+        <h3>Could not find Plaid credentials</h3>
+        <p>
+        You need to enter valid Plaid credentials for this application to work.
+        Get your free credentials <a href="https://dashboard.plaid.com/signup" target="_blank">here.</a>
+        </p>
+      `;
+      let plaidForm = `
+      <form>
+        <div class="form-group">
+          <label for="plaidClientId">Client ID</label>
+          <input type="text" class="form-control" id="plaidClientId" placeholder="Plaid Client ID">
+          <small id="clientIDHelp" class="form-text text-muted">Enter your Plaid Client ID.</small>
+        </div>
+        <div class="form-group">
+          <label for="plaidPublicKey">Public Key</label>
+          <input type="text" class="form-control" id="plaidPublicKey" placeholder="Plaid Public Key">
+          <small id="publicKeyHelp" class="form-text text-muted">Enter your Plaid Public Key.</small>
+        </div>
+        <div class="form-group">
+          <label for="plaidSecretKey">Secret</label>
+          <input type="password" class="form-control" id="plaidSecretKey" placeholder="Plaid Secret">
+          <small id="secretKeyHelp" class="form-text text-muted">Enter your Plaid Secret.</small>
+        </div>
+      </form>
+      <p>The application will restart on saving credentials.</p>
+      <button type="button" class="btn btn-success" id="plaidDBFormSubmit">Save keys</button>
+      `;
+
+    return helpMessage + plaidForm;
   }
 
   drawAccountCards(Store) {
@@ -325,8 +369,8 @@ class MarkupGenerator {
     return markup;
   };
 
-  drawTransactionsByCategory(transactions) {
-    let markup = '<table class="table table-striped" style="width:100%" id="transactionsCategoryTable">';
+  drawTransactionsByCategory(transactions, id) {
+    let markup = `<table class="table table-striped" style="width:100%" id="transactionsCategoryTable${id}">`;
     markup += `
       <thead>
         <tr>
@@ -341,7 +385,11 @@ class MarkupGenerator {
     transactions.forEach(transaction => {
       let contextClass;
       let transactionAmount = 0;
-      if(transaction.amount < 0) {
+      if(transaction.ignore) {
+        contextClass = 'ms-strikethrough';
+        transactionAmount = -transaction.amount;
+      }
+      else if(transaction.amount < 0) {
         contextClass = 'text-success';
         transactionAmount = -transaction.amount;
       }
@@ -353,7 +401,7 @@ class MarkupGenerator {
         <td>${transaction.name}</td>
         <td><span class="${contextClass}">$${transactionAmount}</span></td>
         <td>${transaction.date}</td>
-        <td>${!transaction.pending ? '<i class="fa fa-check-square"></i>' : '<i class="fa fa-square"></i>'}</td>
+        <td>${!transaction.pending ? '<i class="fa fa-check"></i>' : '<i class="fa fa-times"></i>'}</td>
       </tr>`;
     });
 
@@ -392,7 +440,11 @@ class MarkupGenerator {
       transactionObject.transactions.forEach(transaction => {
         let contextClass;
         let transactionAmount = 0;
-        if(transaction.amount < 0) {
+        if(transaction.ignore) {
+          contextClass = 'ms-strikethrough';
+          transactionAmount = Math.abs(transaction.amount);
+        }
+        else if(transaction.amount < 0) {
           contextClass = 'text-success';
           transactionAmount = -transaction.amount;
         }
@@ -405,7 +457,7 @@ class MarkupGenerator {
           <td>${transaction.name}</td>
           <td><span class="${contextClass}">$${transactionAmount}</span></td>
           <td>${transaction.date}</td>
-          <td>${!transaction.pending ? '<i class="fa fa-check-square"></i>' : '<i class="fa fa-square"></i>'}</td>
+          <td>${!transaction.pending ? '<i class="fa fa-check"></i>' : '<i class="fa fa-times"></i>'}</td>
         </tr>`;
       });
     });

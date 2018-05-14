@@ -67,8 +67,14 @@ class Store {
   }
 
   addAllTransactions (transactions) {
+    const creditCardPayment = /.*payment.*thank you.*/gmi;
+
     transactions.forEach(transactionObject => {
       transactionObject.transactions.forEach(transaction => {
+        if(creditCardPayment.test(transaction.name)) {
+          transaction.category.unshift('Credit Card Payment');
+          transaction.ignore = true;
+        }
         if(transaction.category && transaction.category.length) {
           transaction.mainCategory = transaction.category.shift();
         }
@@ -83,14 +89,27 @@ class Store {
     return this.allTransactions.filter(transaction => transaction.date === date);
   }
 
-  getTransactionsSummaryForMonth(date) {
+  getTransactionsSummaryForTimeScale(timeScale, date) {
     const transactionForDate = {
       debit: 0,
       credit: 0
     };
+    let timeScaleTest;
+
+    switch(timeScale) {
+      case 'date':
+        timeScaleTest = (date1, date2) => date1 === date2;
+        break;
+      case 'week':
+        timeScaleTest = (date1, date2) => moment(date1).isSame(date2, 'week');
+        break;
+      case 'month':
+        timeScaleTest = (date1, date2) => moment(date1).isSame(date2, 'month');
+        break;
+    }
 
     this.allTransactions.forEach(transaction => {
-      if(moment(transaction.date).isSame(date, 'month')) {
+      if(timeScaleTest(transaction.date, date) && !transaction.ignore) {
         if(transaction.amount < 0) {
           transactionForDate.credit -= transaction.amount;
         }
@@ -101,46 +120,18 @@ class Store {
     });
 
     return transactionForDate;
+  }
+
+  getTransactionsSummaryForMonth(date) {
+    return this.getTransactionsSummaryForTimeScale('month', date);
   }
 
   getTransactionsSummaryForWeek(date) {
-    const transactionForDate = {
-      debit: 0,
-      credit: 0
-    };
-
-    this.allTransactions.forEach(transaction => {
-      if(moment(transaction.date).isSame(date, 'week')) {
-        if(transaction.amount < 0) {
-          transactionForDate.credit -= transaction.amount;
-        }
-        else {
-          transactionForDate.debit += transaction.amount;
-        }
-      }
-    });
-
-    return transactionForDate;
+    return this.getTransactionsSummaryForTimeScale('week', date);
   }
 
   getTransactionsSummaryForDate (date) {
-    const transactionForDate = {
-      debit: 0,
-      credit: 0
-    };
-
-    this.allTransactions.forEach(transaction => {
-      if(transaction.date === date) {
-        if(transaction.amount < 0) {
-          transactionForDate.credit -= transaction.amount;
-        }
-        else {
-          transactionForDate.debit += transaction.amount;
-        }
-      }
-    });
-
-    return transactionForDate;
+    return this.getTransactionsSummaryForTimeScale('date', date);
   }
 
   getCryptoInformation(symbol) {

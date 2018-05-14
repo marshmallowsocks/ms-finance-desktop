@@ -27,6 +27,9 @@ input[type="file"] {
   vertical-align: text-bottom;
 }
 
+.ms-strikethrough {
+  text-decoration: line-through;
+}
 /*
  * Sidebar
  */
@@ -69,6 +72,7 @@ input[type="file"] {
 
 .sidebar .nav-link .fa {
   color: #999;
+  margin-right: 2px;
 }
 
 .sidebar .nav-link.active {
