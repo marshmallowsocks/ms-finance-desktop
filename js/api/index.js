@@ -58,7 +58,6 @@ const api = {
             error: true
           });
         }
-
         resolve({
           error: false
         });

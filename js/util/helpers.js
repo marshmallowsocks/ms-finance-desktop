@@ -10,6 +10,18 @@ module.exports = {
     };
     return shift(Math.round(shift(num, +pre)), -pre);
   },
+  isInDateRange: (date, dateRange) => {
+    switch(dateRange) {
+      case 'thisWeek':
+        return moment(date).isSame(moment(), 'week');
+      case 'thisMonth':
+        return moment(date).isSame(moment(), 'month');
+      case 'lastMonth':
+        return moment(date).isSame(moment().subtract(1, 'month'), 'month');
+      case 'thisYear':
+        return true; // all transactions are for the year
+    }
+  },
   intVal:  i => typeof i === 'string' ?
         i.replace(/[\$,]/g, '') * 1 :
         typeof i === 'number' ?

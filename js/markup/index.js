@@ -152,6 +152,18 @@ class MarkupGenerator {
             </p>
           </div>
         </div>
+        <div class="card mt-3">
+          <div class="card-img-top">
+            <canvas id="averageMonthlySpendCanvas" width="200" height="200"></canvas>
+          </div>
+          <div class="card-body">
+            <h5 class="card-title">Average Monthly Spending</h5>
+            <h6 class="card-subtitle mb-2 text-muted">Your average daily performance per month</h6>
+            <p class="card-text">
+              Ayy lmao
+            </p>
+          </div>
+        </div>
         </div>
       </div>
     `;

@@ -1,16 +1,22 @@
 class Store {
   constructor() {
-    this.accounts = {};
-    this.allCrypto = {};
-    this.allAccounts = [];
-    this.transactions = [];
-    this.allTransactions = [];
-    this.groups = [];
-    this.netBalance = 0;
-    this.cashBalance = 0;
-    this.creditDebt = 0;
-    this.cryptoBalance = 0;
-    this.investmentBalance = 0;
+    if(!Store.instance){
+      this.accounts = {};
+      this.allCrypto = {};
+      this.allAccounts = [];
+      this.transactions = [];
+      this.allTransactions = [];
+      this.groups = [];
+      this.ignoreTransfers = false;
+      this.netBalance = 0;
+      this.cashBalance = 0;
+      this.creditDebt = 0;
+      this.cryptoBalance = 0;
+      this.investmentBalance = 0;
+      Store.instance = this;
+    }
+ 
+    return Store.instance;
   }
 
   cleanBalance(balances) {
@@ -73,10 +79,13 @@ class Store {
       transactionObject.transactions.forEach(transaction => {
         if(creditCardPayment.test(transaction.name)) {
           transaction.category.unshift('Credit Card Payment');
-          transaction.ignore = true;
+          transaction.ignore = !this.ignoreTransfers;
         }
         if(transaction.category && transaction.category.length) {
           transaction.mainCategory = transaction.category.shift();
+        }
+        if(transaction.mainCategory === 'Transfer') {
+          transaction.ignore = !this.ignoreTransfers;
         }
       });
       this.allTransactions = [...this.allTransactions, ...transactionObject.transactions];
@@ -134,7 +143,7 @@ class Store {
     return this.getTransactionsSummaryForTimeScale('date', date);
   }
 
-  getCryptoInformation(symbol) {
+  getCryptoInformation (symbol) {
     return this.allCrypto.filter(c => c.symbol === symbol)[0];
   }
   
@@ -187,4 +196,6 @@ class Store {
   }
 };
 
-module.exports = Store;
+const instance = new Store();
+//Object.freeze(instance);
+module.exports = instance;
