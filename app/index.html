@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Marshmallowsocks Finance</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.1.1/darkly/bootstrap.min.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/react-table/6.8.6/react-table.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/react-big-calendar@0.19.1/lib/css/react-big-calendar.min.css">
+  <link rel="stylesheet" href="build/bundle.css">
+  <style>
+    html {
+      margin: 0px;
+      padding: 0px;
+      overflow: scroll;
+      overflow-x: hidden;
+    }
+
+    ::-webkit-scrollbar {
+      width: 0px;  
+      background: transparent;
+    }
+
+    body {
+      padding: 0px;
+      margin: 0px;
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      right: 0px;
+      bottom: 0px;
+    }
+
+    #title-bar {
+      -webkit-app-region: drag;
+      height: 32px; 
+      padding: 0px;
+      margin: 0px;
+      color: #ADADAD;
+      z-index: 1001;
+    }
+
+    #title {
+      position: fixed;
+      color: #00bc8c;
+      font-size: 32px;
+      font-weight: 500;
+      top: 0px;
+      left: 12px; 
+      line-height: 32px;
+      font-size: 14px;
+    }
+
+    #title-bar-btns {
+      -webkit-app-region: no-drag;
+      position: fixed;
+      top: 1px;
+      right: 0px;
+      z-index: 10001;
+    }
+
+    #title-bar-btns button {
+      height: 32px;
+      width: 32px;
+      background-color: transparent;
+      border: none;
+      color: #F1F1F1;
+      font-size: 16px;
+    }
+    
+    #title-bar-btns button:hover {
+      background-color: #3F3F41;
+    }
+  </style>
+</head>
+<body>
+  <div id="title-bar">
+    <div id="title">Marshmallowsocks Finance</div>
+    <div id="title-bar-btns">
+      <button id="min-btn"><i class="fa fa-minus"></i></button>
+      <button id="max-btn"><i class="fa fa-plus"></i></button>
+      <button id="close-btn"><i class="fa fa-times"></i></button>
+    </div>
+  </div>
+  <div id="app"></div>
+  
+  <script src="build/bundle.js"></script>
+  <script>
+  (function () {
+    const remote = require('electron').remote;
+
+    function init() {
+      document.getElementById("min-btn").addEventListener("click", function (e) {
+        const window = remote.getCurrentWindow();
+        window.minimize(); 
+      });
+
+      document.getElementById("max-btn").addEventListener("click", function (e) {
+        const window = remote.getCurrentWindow();
+        if (!window.isMaximized()) {
+          window.maximize();
+        } else {
+          window.unmaximize();
+        }	 
+      });
+
+      document.getElementById("close-btn").addEventListener("click", function (e) {
+        const window = remote.getCurrentWindow();
+        window.close();
+      });
+
+    }; 
+    
+    document.onreadystatechange = function () {
+      if (document.readyState == "complete") {
+        init(); 
+      }
+    };
+  })();
+  </script>
+</body>
+</html>

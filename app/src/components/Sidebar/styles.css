@@ -1,0 +1,59 @@
+/*
+ * Sidebar
+ */
+
+ .sidebar {
+  position: fixed;
+  top: 32px;
+  bottom: 45px;
+  left: 0;
+  z-index: 1040;
+  padding: 0 0 0;
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
+
+.sidebar-sticky {
+  position: relative;
+  top: 0;
+  height: calc(100vh - 48px);
+  padding-top: .5rem;
+  overflow-x: hidden;
+  overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+}
+
+/*
+@supports ((position: -webkit-sticky) or (position: sticky)) {
+  .sidebar-sticky {
+    position: -webkit-sticky;
+    position: sticky;
+  }
+}
+*/
+
+.sidebar .nav-link {
+  font-weight: 500;
+  color: white;
+}
+
+.sidebar .nav-link .fa {
+  margin-right: 6px;
+  color: #999;
+}
+
+.sidebar .nav-link.active {
+  background: #007bff;
+  margin-left: 20px;
+  margin-right: 20px;
+  border-radius: 25px;
+  /*background: #00bc8c;*/
+}
+
+.sidebar .nav-link:hover .fa,
+.sidebar .nav-link.active .fa {
+  color: inherit;
+}
+
+.sidebar-heading {
+  font-size: .75rem;
+  text-transform: uppercase;
+}
