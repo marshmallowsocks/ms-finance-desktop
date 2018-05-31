@@ -21,15 +21,6 @@
   overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
 }
 
-/*
-@supports ((position: -webkit-sticky) or (position: sticky)) {
-  .sidebar-sticky {
-    position: -webkit-sticky;
-    position: sticky;
-  }
-}
-*/
-
 .sidebar .nav-link {
   font-weight: 500;
   color: white;
@@ -42,10 +33,8 @@
 
 .sidebar .nav-link.active {
   background: #007bff;
-  margin-left: 20px;
   margin-right: 20px;
-  border-radius: 25px;
-  /*background: #00bc8c;*/
+  border-radius: 0 25px 25px 0;
 }
 
 .sidebar .nav-link:hover .fa,
