@@ -16,8 +16,16 @@ class DomainStore {
   @observable
   plaidAvailable = false;
 
+  @observable
+  plaidSet = false;
+
   constructor(rootStore) {
     this.rootStore = rootStore;
+  }
+
+  @action.bound
+  setPlaidUsed() {
+    this.plaidSet = true;
   }
 
   @action.bound

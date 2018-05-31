@@ -3,11 +3,17 @@ import Script from 'react-load-script';
 import {
   DropdownItem
 } from 'reactstrap';
+import {
+  inject,
+  observer
+} from 'mobx-react';
 import PropTypes from 'prop-types';
 
+@inject('store')
 class PlaidLink extends Component {
   constructor(props) {
     super(props);
+    const { domainStore } = this.props.store;
     this.state = {
       disabledButton: true,
       linkLoaded: false,
@@ -18,6 +24,7 @@ class PlaidLink extends Component {
     this.onScriptLoaded = this.onScriptLoaded.bind(this);
     this.handleLinkOnLoad = this.handleLinkOnLoad.bind(this);
     this.handleOnClick = this.handleOnClick.bind(this);
+    domainStore.setPlaidUsed();
   }
 
   static defaultProps = {

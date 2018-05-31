@@ -143,7 +143,6 @@ export default class App extends React.Component {
         <Provider store={Store}>
         <Router>
           <div>
-            <Header />
             <SideBar />
             <Content setActive={this.setActive} />
             <Footer />

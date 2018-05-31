@@ -37,6 +37,7 @@ import api from '../../api';
 import helpers from '../../util/helpers';
 import styles from './styles.css';
 
+// DEPRECATED
 @inject("store")
 @observer
 class Header extends React.Component {
@@ -89,8 +90,7 @@ class Header extends React.Component {
     e.preventDefault();
     const { uiStore } = this.props.store;
     if(e.target.files.length === 0) {
-      // show modal error
-      console.log('ERR NO FILE');
+      uiStore.addMessage('No file selected.');
     }
     else {
       const reader = new FileReader();
@@ -170,7 +170,7 @@ class Header extends React.Component {
     return (
       <div>
       <Navbar fixed={'top'} expand className={`flex-md-nowrap p-0 shadow ${styles.navbar}`}>
-        <div className={`${styles['form-control']} ${styles['form-control-dark']} w-100 offset-sm-3 offset-md-2`}>
+        <div className={`w-100 offset-sm-3 offset-md-2`}>
           <span style={{fontSize: '18px'}}>Net balance: </span><span className={`float-right ${netBalanceMarkup.className}`} style={{fontSize: '18px'}}>{netBalanceMarkup.balance}</span>
         </div>
         <Nav className={'ml-auto'} navbar>

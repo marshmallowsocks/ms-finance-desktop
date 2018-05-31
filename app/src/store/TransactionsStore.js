@@ -15,6 +15,7 @@ class TransactionStore {
   
   constructor(rootStore) {
     this.rootStore = rootStore;
+    this.ignoreTransfers = true;
   }
 
   @action.bound
@@ -27,13 +28,13 @@ class TransactionStore {
         
         if(creditCardPayment.test(transaction.name)) {
           transaction.category.unshift('Credit Card Payment');
-          transaction.ignore = !this.ignoreTransfers;
+          transaction.ignore = this.ignoreTransfers;
         }
         if(transaction.category && transaction.category.length) {
           transaction.mainCategory = transaction.category.shift();
         }
         if(transaction.mainCategory === 'Transfer') {
-          transaction.ignore = !this.ignoreTransfers;
+          transaction.ignore = this.ignoreTransfers;
         }
       });
       this.allTransactions = [...this.allTransactions, ...transactionObject.transactions];

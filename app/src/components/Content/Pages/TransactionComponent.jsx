@@ -42,7 +42,7 @@ class TransactionComponent extends React.Component {
             Header: 'Amount',
             accessor: 'amount',
             Cell: row => (
-              <span className={row.value > 0 ? 'text-danger' : 'text-success'}>${row.value}</span>
+              <span className={row.value > 0 ? 'text-danger' : 'text-success'}>${Math.abs(row.value)}</span>
             ),
           },
           {

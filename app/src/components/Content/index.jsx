@@ -13,7 +13,7 @@ class Content extends React.Component {
 
   componentDidUpdate(prevProps) {
     // activeClassName is ridiculously buggy.
-    // implent a custom active using mobx and react-router
+    // implement a custom active using mobx and react-router
     if(this.props.location.pathname === '/') {
       this.props.setActive('overview');
       return;
@@ -23,7 +23,7 @@ class Content extends React.Component {
 
   render() {
     return (
-      <div className={"col-md-9 ml-sm-auto col-lg-10 px-4"} style={{marginBottom: '50px', paddingTop: '48px'}}>
+      <div className={"col-md-9 ml-sm-auto col-lg-10 px-4"} style={{marginBottom: '50px', paddingTop: '32px'}}>
         <Switch>
           {routes}
         </Switch>

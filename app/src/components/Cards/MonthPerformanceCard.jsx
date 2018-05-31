@@ -97,7 +97,7 @@ class MonthPerformanceCard extends React.Component {
           <CardTitle>Spending differential</CardTitle>
           <CardSubtitle className={'mb-2 text-muted'}>Your performance against one month ago.</CardSubtitle>
           <CardText>
-            This compares your spending vs the same time last month. <br />
+            This compares your spending versus the same time last month. <br />
           </CardText>
         </CardBody>
       </Card>

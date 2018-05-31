@@ -92,7 +92,7 @@ class TransactionBreakdownComponent extends React.Component {
             Header: 'Amount',
             accessor: 'amount',
             Cell: row => (
-              <span className={row.value > 0 ? 'text-danger' : 'text-success'}>${row.value}</span>
+              <span className={row.value > 0 ? 'text-danger' : 'text-success'}>${Math.abs(row.value)}</span>
             ),
             filterMethod: (filter, row) => {
               if(filter.value.type === 'type') {
@@ -244,13 +244,18 @@ class TransactionBreakdownComponent extends React.Component {
           </div>
         </div>
         <Row className={'mt-3'}>
-          <Col md={6} lg={6} sm={12}>
-            <Doughnut 
+          <Col sm={12} md={6} lg={6}>
+            <Doughnut
+              width={500}
+              height={500}
+              options={{
+                maintainAspectRatio: false
+              }}
               data={this.getChartData()}
               onElementsClick={this.onChartClick}
             />
           </Col>
-          <Col md={6} lg={6} sm={12}>
+          <Col sm={12} md={6} lg={6}>
           <ReactTable
             filterable
             noDataText={uiStore.loading ? 'Loading transactions..' : 'Click a category to get started.'}
