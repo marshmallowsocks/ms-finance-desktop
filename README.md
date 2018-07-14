@@ -1,3 +1,7 @@
+# THIS BRANCH IS DEPRECATED.
+
+Use the react-mobx branch instead. This branch will eventually be replaced.
+
 # ms-finance-desktop
 
 Marshmallowsocks Finance is your very own personal finance tracker, that doesn't track you!
