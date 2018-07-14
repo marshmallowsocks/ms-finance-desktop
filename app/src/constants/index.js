@@ -1,6 +1,6 @@
 module.exports = {
   plaid: {
-    PLAID_ENV: 'development',
+    PLAID_ENV: 'sandbox',
   },
   crypto: {
     LISTINGS: 'https://api.coinmarketcap.com/v2/listings/',

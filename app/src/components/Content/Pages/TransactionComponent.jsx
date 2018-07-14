@@ -3,6 +3,14 @@ import {
   observer,
   inject
 } from 'mobx-react';
+import {
+  Input,
+  InputGroup,
+  InputGroupButtonDropdown,
+  DropdownToggle,
+  DropdownMenu,
+  DropdownItem,
+} from 'reactstrap';
 import ReactTable from 'react-table';
 
 import Title from '../Title';
@@ -12,6 +20,18 @@ import Title from '../Title';
 class TransactionComponent extends React.Component {
   constructor(props) {
     super(props);
+    
+    this.state = {
+      amountDropdownFilterOpen: false,
+    };
+  
+    this.toggleDropdown = this.toggleDropdown.bind(this);
+  } 
+
+  toggleDropdown() {
+    this.setState({
+      amountDropdownFilterOpen: !this.state.amountDropdownFilterOpen
+    });
   }
   
   getColumnDefinitions() {
@@ -43,6 +63,23 @@ class TransactionComponent extends React.Component {
             accessor: 'amount',
             Cell: row => (
               <span className={row.value > 0 ? 'text-danger' : 'text-success'}>${Math.abs(row.value)}</span>
+            ),
+            Filter: ({filter, onChange}) => (
+              <InputGroup>
+                <InputGroupButtonDropdown addonType="prepend" isOpen={this.state.amountDropdownFilterOpen} toggle={this.toggleDropdown}>
+                  <DropdownToggle caret>
+                    Sign
+                  </DropdownToggle>
+                  <DropdownMenu>
+                    <DropdownItem header>Header</DropdownItem>
+                    <DropdownItem disabled>Action</DropdownItem>
+                    <DropdownItem>Another Action</DropdownItem>
+                    <DropdownItem divider />
+                    <DropdownItem>Another Action</DropdownItem>
+                  </DropdownMenu>
+                </InputGroupButtonDropdown>
+                <Input />
+              </InputGroup>
             ),
           },
           {

@@ -4,7 +4,7 @@ import IDBExportImport from 'indexeddb-export-import';
 class DB {
   constructor() {
     if(!DB.instance) {
-      this.db = new Dexie('ms-finance-desktop-react-testing');
+      this.db = new Dexie('ms-finance-desktop-react');
       this.db.version(1).stores({
         access_tokens: '++id, access_token, item_token',
         institutions: '++id, name, institution_id, item_token, products',

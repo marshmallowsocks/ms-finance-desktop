@@ -2,8 +2,8 @@
 const electron = require('electron')
 const {app, BrowserWindow} = electron
 
-// Let electron reloads by itself when webpack watches changes in ./app/
-//require('electron-reload')(__dirname)
+//Let electron reload by itself when webpack watches changes in ./app/
+require('electron-reload')(__dirname)
 
 // To avoid being garbage collected
 let mainWindow

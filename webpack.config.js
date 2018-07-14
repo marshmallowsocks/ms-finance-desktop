@@ -2,7 +2,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin')
 
 module.exports = {
 
-    watch: false,
+    watch: true,
 
     target: 'electron-main',
 

@@ -58,16 +58,29 @@ export default class App extends React.Component {
         };
       }
 
-      uiStore.addMessage(`Found ${institutions.length} institution(s). Fetching data...`);
+      uiStore.addMessage(`Found ${institutions.length} institution(s).`);
       const accountPromises = [];
       const transactionPromises = [];
-      
-      institutions.forEach(institution => {
-        accountPromises.push(api.fetchAccountData(institution.item_token));
-        transactionPromises.push(api.fetchTransactionData(institution.item_token));
+      const result = [];
+      institutions.forEach(async (institution) => {
+        uiStore.addMessage(`Fetching data for ${institution.name}...`);
+        try {
+          const accountResult = await api.fetchAccountData(institution.item_token);
+          result.push(accountResult);
+        }
+        catch(e) {
+          console.log(e);
+        }
+        try {
+          const transactionResult = await api.fetchTransactionData(institution.item_token);
+          result.push(transactionResult);
+        }
+        catch(e) {
+          console.log(e);
+        }
       });
       
-      const result = await Promise.all([...accountPromises, ...transactionPromises]);
+      //const result = await Promise.all([...accountPromises, ...transactionPromises]);
       uiStore.addMessage(`Fetched ${institutions.length} institution(s) data. Fetching crypto data...`);
       const crypto = await api.fetchCrypto();
       const cryptoAccounts = await api.getCryptoHoldings();
