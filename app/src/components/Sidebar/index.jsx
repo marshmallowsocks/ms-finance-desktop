@@ -40,6 +40,8 @@ import constants from '../../constants';
 import helpers from '../../util/helpers';
 import styles from './styles.css';
 
+import existingDB from '../../../../exportedDB.json';
+
 @inject('store')
 @observer
 class SideBar extends React.Component {
@@ -59,7 +61,6 @@ class SideBar extends React.Component {
     this.toggleSynchronize = this.toggleSynchronize.bind(this);
     this.toggleCreateGroup = this.toggleCreateGroup.bind(this);
     this.databaseImport = this.databaseImport.bind(this);
-    this.importDatabase = this.importDatabase.bind(this);
     this.exportDatabase = this.exportDatabase.bind(this);
     this.handlePlaidExit = this.handlePlaidExit.bind(this);
     this.handlePlaidSuccess = this.handlePlaidSuccess.bind(this);
@@ -129,33 +130,17 @@ class SideBar extends React.Component {
   }
 
   databaseImport() {
-    this.fileInput.current.click();
-  }
-
-  importDatabase(e) {
-    e.preventDefault();
-    const { uiStore } = this.props.store;
-    if(e.target.files.length === 0) {
-      uiStore.addMessage('No file selected.');
-    }
-    else {
-      const reader = new FileReader();
-      reader.readAsText(e.target.files[0]);
-      reader.onload = event => {
-        const jsonString = event.target.result;
-        api.importDatabase(jsonString).then(res => {
-          if(!res.error) {
-            remote.app.relaunch();
-            remote.app.exit(0);
-          }
-          else {
-            uiStore.addMessage('Could not import database.');
-          }
-        });
-      }
-      reader.onerror = event => {
-        uiStore.addMessage('Failed to import database.');
-      }
+    if(existingDB) {
+      api.importDatabase(JSON.stringify(existingDB))
+          .then(res => {
+            if(!res.error) {
+              remote.app.relaunch();
+              remote.app.exit(0);
+            }
+            else {
+              uiStore.addMessage('Could not import database.');
+            }
+          });
     }
   }
 
@@ -329,7 +314,7 @@ class SideBar extends React.Component {
               {domainStore.plaidAvailable ?
               <PlaidLink
                 clientName="Marshmallowsocks Finance"
-                env="sandbox"
+                env={constants.plaid.PLAID_ENV}
                 product={["transactions"]}
                 publicKey={domainStore.plaidCredentials.public_key}
                 onExit={this.handlePlaidExit}
@@ -348,13 +333,6 @@ class SideBar extends React.Component {
               <DropdownItem divider />
               <DropdownItem onClick={this.databaseImport}>
                 Import Database
-                <input
-                  type="file"
-                  style={{display: 'none'}}
-                  accept=".json"
-                  ref={this.fileInput}
-                  onChange={e => this.importDatabase(e)}
-                />
               </DropdownItem>
               <DropdownItem onClick={this.exportDatabase}>
                 Export Database
@@ -670,7 +648,8 @@ class CredentialsModal extends React.Component {
           <p>
           You need to enter valid Plaid credentials for Marshmallowsocks Finance to work.
           Get your free credentials <a href="https://dashboard.plaid.com/signup" target="_blank">here.</a><br />
-          You can also import a previous configuration.
+          You can also import a previous configuration. <br />
+          To import a previous configuration, place <code>exportedDB.json</code> at the root of this project, and hit import.          
           </p>
           <Form>
             <FormGroup>

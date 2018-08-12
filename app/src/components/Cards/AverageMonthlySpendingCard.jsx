@@ -30,9 +30,9 @@ class AverageMonthlySpendingCard extends React.Component {
     for(let i = moment().startOf('year'); i.isBefore(moment()); i.add(1, 'month')) {
       transactions.push(transactionStore.getTransactionsAggregateForTimescale('month', i));
     }
-
-    average = transactions.reduce((runningSum, t) => runningSum + t.debit - t.credit, 0)
-
+    if(transactions.length) {
+      average = transactions.reduce((runningSum, t) => runningSum + t.debit - t.credit, 0)/transactions.length;
+    }
     return {
       data: {
         datasets: [{
