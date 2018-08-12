@@ -5,7 +5,6 @@ import {
 } from 'reactstrap';
 import {
   inject,
-  observer
 } from 'mobx-react';
 import PropTypes from 'prop-types';
 

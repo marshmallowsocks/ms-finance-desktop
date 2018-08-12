@@ -19,6 +19,10 @@ class Footer extends React.Component {
     super(props);
   }
 
+  createMarkup(__html) {
+    return { __html };  
+  }
+
   render() {
     return (
       <footer className={styles.footer}>
@@ -33,7 +37,11 @@ class Footer extends React.Component {
               </div>
             </Col>
             <Col md={4} lg={3}>
-              <span className="float-right" style={{color: '#ccc'}}>{this.props.store.uiStore.latestMessage}</span>
+              <span
+                className="float-right"
+                style={{color: '#ccc'}}
+                dangerouslySetInnerHTML={this.createMarkup(this.props.store.uiStore.latestMessage)}
+              />
             </Col>
           </Row>
         </Container>

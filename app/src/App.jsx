@@ -2,7 +2,6 @@ import React from 'react';
 import { HashRouter as Router } from 'react-router-dom';
 import { Provider } from 'mobx-react';
 
-import Header from './components/Header';
 import SideBar from './components/Sidebar';
 import Content from './components/Content';
 import Footer from './components/Footer';
@@ -59,16 +58,18 @@ export default class App extends React.Component {
       }
 
       uiStore.addMessage(`Found ${institutions.length} institution(s).`);
-      const accountPromises = [];
-      const transactionPromises = [];
       const result = [];
-      institutions.forEach(async (institution) => {
+
+      for(let institution of institutions) {
         uiStore.addMessage(`Fetching data for ${institution.name}...`);
         try {
           const accountResult = await api.fetchAccountData(institution.item_token);
           result.push(accountResult);
         }
         catch(e) {
+          if(e.error_code === 'ITEM_LOGIN_REQUIRED') {
+            await api.addAccountReset(institution);
+          }
           console.log(e);
         }
         try {
@@ -78,9 +79,8 @@ export default class App extends React.Component {
         catch(e) {
           console.log(e);
         }
-      });
-      
-      //const result = await Promise.all([...accountPromises, ...transactionPromises]);
+      }
+
       uiStore.addMessage(`Fetched ${institutions.length} institution(s) data. Fetching crypto data...`);
       const crypto = await api.fetchCrypto();
       const cryptoAccounts = await api.getCryptoHoldings();
@@ -145,7 +145,11 @@ export default class App extends React.Component {
       uiStore.addMessage('Could not fetch data.');
     }
 
-    uiStore.toggleLoader(false);    
+    if(domainStore.resetAccounts.length) {
+      uiStore.addMessage('One or more accounts failed to sync.');
+    }
+
+    uiStore.toggleLoader(false);
   }
 
   render() {

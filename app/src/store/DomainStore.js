@@ -19,6 +19,9 @@ class DomainStore {
   @observable
   plaidSet = false;
 
+  @observable
+  resetAccounts = [];
+
   constructor(rootStore) {
     this.rootStore = rootStore;
   }

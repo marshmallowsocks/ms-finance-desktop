@@ -168,6 +168,21 @@ class API {
     });
   }
 
+  resetCredentialsForToken(token) {
+    return new Promise((resolve, reject) => {
+      this.client.createPublicToken(token, (error, response) => {
+        if(error != null) {
+          reject(new Error({
+            error: true,
+            errorBody: error,
+            message: 'Could not reset credentials.',
+          }));
+        }
+        resolve(response);
+      });
+    });
+  }
+
   fetchLatestInstitutionData() {
     return new Promise((itemResolve, itemReject) => {
       db.getLatestAccessToken()
@@ -227,6 +242,24 @@ class API {
       db.saveCryptoHolding(saveObject)
         .then(result => resolve({ saved: true, exists: result.exists }))
         .catch(err => reject(Error(err)));
+    });
+  }
+
+  addAccountReset(institution) {
+    return new Promise((resolve, reject) => {
+      db.getAccessTokenById(institution.item_token)
+        .then(accessTokenObject => {
+          store.domainStore.resetAccounts.push({
+            name: institution.name,
+            token: accessTokenObject.access_token,
+            itemId: institution.item_token,
+          });
+          resolve({
+            error: false,
+            message: 'Added reset.'
+          })
+        })
+        .catch(error => reject(error));
     });
   }
 

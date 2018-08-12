@@ -1,10 +1,7 @@
 import React from 'react';
 import { remote } from 'electron';
 import {
-  Collapse,
   Navbar,
-  NavbarToggler,
-  NavbarBrand,
   Nav,
   NavItem,
   NavLink,
@@ -21,11 +18,11 @@ import {
   DropdownToggle,
   DropdownMenu,
   DropdownItem,
-  Table,
   Card,
   CardBody,
   CardTitle,
   CardText,
+  Table,
 } from 'reactstrap';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-bootstrap-typeahead/css/Typeahead-bs4.css';
@@ -39,6 +36,7 @@ import { NavLink as RRNavLink } from 'react-router-dom';
 
 import PlaidLink from '../PlaidLink';
 import api from '../../api';
+import constants from '../../constants';
 import helpers from '../../util/helpers';
 import styles from './styles.css';
 
@@ -50,16 +48,22 @@ class SideBar extends React.Component {
     this.state = {
       modal: false,
       groupModal: false,
+      synchronizeModal: false,
+      activeToken: null,
     };
 
     this.fileInput = React.createRef();
+    this.plaidLink = React.createRef();
     this.toggle = this.toggle.bind(this);
+    this.synchronize = this.synchronize.bind(this);
+    this.toggleSynchronize = this.toggleSynchronize.bind(this);
     this.toggleCreateGroup = this.toggleCreateGroup.bind(this);
     this.databaseImport = this.databaseImport.bind(this);
     this.importDatabase = this.importDatabase.bind(this);
     this.exportDatabase = this.exportDatabase.bind(this);
     this.handlePlaidExit = this.handlePlaidExit.bind(this);
     this.handlePlaidSuccess = this.handlePlaidSuccess.bind(this);
+    this.handlePlaidRefresh = this.handlePlaidRefresh.bind(this);
   }
 
   handlePlaidExit() {
@@ -67,21 +71,59 @@ class SideBar extends React.Component {
     uiStore.addMessage('Bank linking aborted.');
   }
 
-  async handlePlaidSuccess(token, metadata) {
-    const { accountStore, uiStore } = this.props.store;
+  async handlePlaidSuccess(token) {
+    const { accountStore, uiStore, transactionStore } = this.props.store;
     uiStore.toggleLoader(true);
     try {
       const result = await api.exchangePublicToken(token);
       if(!result.error) {
-        const { name, itemId, products } = await api.fetchLatestInstitutionData();
-        const accountData = await api.fetchAccountData(itemId);
-        accountStore.addAccount(accountData.data);
+        const { name, itemId } = await api.fetchLatestInstitutionData();
+        const data = [];
+        
+        data.push(await api.fetchAccountData(itemId));
+        data.push(await api.fetchTransactionData(itemId));
+        
+        accountStore.addAccount(data[0].data);
+        
+        transactionStore.addAllTransactions([
+          ...data.filter(r => r.type === 'transactions').map(r => r.data)
+        ]);
+        
         uiStore.addMessage(`${name} linked successfully.`);
       }
     }
     catch(e) {
       uiStore.addMessage('Failed to link bank account.');
       throw Error(e);
+    }
+    uiStore.toggleLoader(false);
+  }
+
+  async handlePlaidRefresh(account) {
+    const { 
+      accountStore,
+      uiStore,
+      domainStore,
+      transactionStore,
+    } = this.props.store;
+    uiStore.toggleLoader(true);
+    const { name, itemId } = account;
+    try {
+      const data = [];
+
+      data.push(await api.fetchAccountData(itemId));
+      data.push(await api.fetchTransactionData(itemId));
+
+      accountStore.addAccount(data[0].data);
+      transactionStore.addAllTransactions([
+        ...data.filter(r => r.type === 'transactions').map(r => r.data)
+      ]);
+
+      uiStore.addMessage(`${name} refreshed successfully.`);
+      domainStore.resetAccounts = domainStore.resetAccounts.filter(resetAccount => resetAccount.itemId !== itemId);
+    }
+    catch(e) {
+      uiStore.addMessage(`Could not sync ${name}.`);
     }
     uiStore.toggleLoader(false);
   }
@@ -153,6 +195,38 @@ class SideBar extends React.Component {
       uiStore.addMessage('Plaid is unavailable.');
     }
     uiStore.toggleLoader(false);
+  }
+
+  toggleSynchronize() {
+    const { uiStore, domainStore } = this.props.store;
+    if(!domainStore.resetAccounts.length) {
+      uiStore.addMessage('All accounts are up to date.');
+      this.setState({
+        synchronizeModal: false
+      });
+      return;
+    }
+
+    this.setState({
+      synchronizeModal: !this.state.synchronizeModal
+    });
+  }
+
+  async synchronize(account) {
+    const { uiStore, domainStore } = this.props.store;
+    const tokenResponse = await api.resetCredentialsForToken(account.token);
+    const linkHandler = window.Plaid.create({
+      apiVersion: 'v2',
+      clientName: 'Marshmallowsocks Finance',
+      env: constants.plaid.PLAID_ENV,
+      key: domainStore.plaidCredentials.public_key,
+      onExit: console.log,
+      onSuccess: () => this.handlePlaidRefresh(account),
+      product: ['transactions'],
+      token: tokenResponse.public_token,
+    });
+
+    linkHandler.open();
   }
 
   render() {
@@ -259,7 +333,8 @@ class SideBar extends React.Component {
                 product={["transactions"]}
                 publicKey={domainStore.plaidCredentials.public_key}
                 onExit={this.handlePlaidExit}
-                onSuccess={this.handlePlaidSuccess}>
+                onSuccess={this.handlePlaidSuccess}
+              >
                 Add Bank
               </PlaidLink>
               : '' 
@@ -284,15 +359,29 @@ class SideBar extends React.Component {
               <DropdownItem onClick={this.exportDatabase}>
                 Export Database
               </DropdownItem>
+              <DropdownItem divider />
+              <DropdownItem onClick={this.toggleSynchronize}>
+                Synchronize
+              </DropdownItem>
               </DropdownMenu>
             </UncontrolledDropdown>
             </NavItem>
           </Nav>
         </div>
       </Navbar>
-      <CredentialsModal isOpen={!domainStore.plaidAvailable} databaseImport={this.databaseImport}/>
-      <CryptoModal isOpen={this.state.modal} toggleModal={this.toggle} />
-      <CreateGroupModal isOpen={this.state.groupModal} toggleModal={this.toggleCreateGroup} />
+      <CredentialsModal 
+        isOpen={!domainStore.plaidAvailable}
+        databaseImport={this.databaseImport} />
+      <CryptoModal 
+        isOpen={this.state.modal}
+        toggleModal={this.toggle} />
+      <CreateGroupModal 
+        isOpen={this.state.groupModal}
+        toggleModal={this.toggleCreateGroup} />
+      <SynchronizeAccountModal 
+        isOpen={this.state.synchronizeModal}
+        toggleModal={this.toggleSynchronize}
+        synchronize={this.synchronize} />
       </div>
     );
   }
@@ -476,6 +565,55 @@ class CreateGroupModal extends React.Component {
         <ModalFooter>
           <Button color="success" onClick={this.saveGroup}>Save Group</Button>{' '}
           <Button color="danger" onClick={this.props.toggleModal}>Exit</Button>
+        </ModalFooter>
+      </Modal>
+    );
+  }
+}
+
+@inject('store')
+@observer
+class SynchronizeAccountModal extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    const { domainStore } = this.props.store;
+    const accounts = domainStore.resetAccounts.map((account, idx) => (
+      <tr key={idx}>
+        <td>{account.name}</td>
+        <td>
+          
+            <span className="float-right">
+            <Button color="warning"
+                  outline
+                  onClick={() => this.props.synchronize(account)}>
+                    <i className="fa fa-refresh" /> Sync
+            </Button>
+            </span>
+        </td>
+      </tr>
+    ));
+    return (
+      <Modal isOpen={this.props.isOpen}>
+        <ModalHeader>Synchronize Accounts</ModalHeader>
+        <ModalBody>
+          {
+            domainStore.resetAccounts.length ? 
+          <div>
+            <div>The following accounts are not up to date:</div>
+            <Table responsive>
+              <tbody>
+                {accounts}
+              </tbody>
+            </Table>
+          </div>
+          : <div>All accounts are up to date.</div>
+        }
+        </ModalBody>
+        <ModalFooter>
+          <Button color="success" onClick={this.props.toggleModal}>Done</Button>
         </ModalFooter>
       </Modal>
     );
